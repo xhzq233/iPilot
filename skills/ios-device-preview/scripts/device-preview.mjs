@@ -151,7 +151,7 @@ function startServer() {
 }
 
 // ────────────────────────────────────────
-// Preview HTML (截图 + DOM 框叠加)
+// Preview HTML (serve-sim 风格: iPhone Chrome + DOM/Frame 切换 + 缩放)
 // ────────────────────────────────────────
 
 const PREVIEW_HTML = `<!DOCTYPE html>
@@ -161,36 +161,172 @@ const PREVIEW_HTML = `<!DOCTYPE html>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>iPilot Device Preview</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: #1a1a2e; font-family: -apple-system, system-ui, sans-serif; display: flex; flex-direction: column; align-items: center; height: 100vh; overflow: hidden; }
-  .toolbar { display: flex; align-items: center; gap: 8px; padding: 8px 12px; width: 100%; background: #16213e; border-bottom: 1px solid #0f3460; }
-  .toolbar h1 { font-size: 13px; color: #e0e0e0; font-weight: 500; flex: 1; }
-  .toolbar button { background: #0f3460; color: #e0e0e0; border: 1px solid #533483; padding: 4px 12px; border-radius: 4px; font-size: 12px; cursor: pointer; }
-  .toolbar button:hover { background: #533483; }
-  .toolbar .status { font-size: 11px; color: #888; }
-  .preview-container { flex: 1; display: flex; justify-content: center; align-items: center; padding: 12px; overflow: hidden; }
-  .device-frame { position: relative; display: inline-block; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.5); }
-  .device-frame img { display: block; max-height: calc(100vh - 60px); max-width: 100%; height: auto; }
-  .device-frame .no-screenshot { display: flex; align-items: center; justify-content: center; width: 300px; height: 600px; color: #666; font-size: 14px; background: #111; }
-  .dom-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
-  .dom-box { position: absolute; border: 1.5px solid rgba(0, 200, 255, 0.6); border-radius: 2px; pointer-events: auto; cursor: pointer; transition: background 0.15s; }
-  .dom-box:hover { background: rgba(0, 200, 255, 0.15); }
-  .dom-tooltip { position: fixed; background: #16213e; color: #e0e0e0; padding: 6px 10px; border-radius: 6px; font-size: 11px; font-family: 'SF Mono', monospace; pointer-events: none; z-index: 100; border: 1px solid #533483; max-width: 300px; white-space: pre-wrap; display: none; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: #0d1117; color: #e6edf3;
+  font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  display: flex; flex-direction: column; height: 100vh; overflow: hidden;
+}
+
+/* ─── Toolbar (SimulatorToolbar 风格) ─── */
+.toolbar {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: 4px 12px; padding: 8px 12px;
+  background: #1c1c1e; border-bottom: 1px solid rgba(255,255,255,0.1);
+  flex-shrink: 0;
+}
+.toolbar-title {
+  display: flex; flex-direction: column; gap: 1px;
+}
+.toolbar-title .name {
+  font-size: 12px; font-weight: 600; color: #fff;
+}
+.toolbar-title .subtitle {
+  font-size: 10px; color: rgba(255,255,255,0.5);
+}
+.toolbar-actions {
+  display: flex; align-items: center; gap: 4px;
+}
+.tb-btn {
+  background: transparent; border: none; padding: 6px; border-radius: 6px;
+  cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+  color: rgba(255,255,255,0.8); transition: background 0.15s;
+}
+.tb-btn:hover { background: rgba(255,255,255,0.1); }
+.tb-btn.active { background: rgba(59,130,246,0.2); color: #58a6ff; }
+.tb-btn:disabled { color: rgba(255,255,255,0.25); cursor: not-allowed; }
+.tb-btn svg { width: 18px; height: 18px; }
+
+/* ─── 状态栏 ─── */
+.statusbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 4px 12px; border-bottom: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.02); flex-shrink: 0;
+}
+.statusbar .status {
+  display: flex; align-items: center; gap: 6px; font-size: 11px; font-family: monospace;
+}
+.statusbar .dot {
+  width: 8px; height: 8px; border-radius: 50%; background: #4ade80;
+  transition: background 0.3s;
+}
+.statusbar .dot.disconnected { background: #ef4444; }
+.statusbar .dot.refreshing { background: #facc15; }
+.zoom-ctrl {
+  display: flex; align-items: center; gap: 4px; font-size: 11px; font-family: monospace; color: #8b949e;
+}
+.zoom-ctrl button {
+  background: rgba(255,255,255,0.08); border: none; color: #e6edf3;
+  width: 22px; height: 22px; border-radius: 4px; cursor: pointer;
+  font-size: 13px; line-height: 1; display: inline-flex; align-items: center; justify-content: center;
+}
+.zoom-ctrl button:hover { background: rgba(255,255,255,0.15); }
+
+/* ─── Viewport ─── */
+.viewport {
+  flex: 1; display: flex; align-items: center; justify-content: center;
+  min-height: 0; min-width: 0; overflow: auto; padding: 16px;
+}
+
+/* ─── Device container ─── */
+.device-container {
+  position: relative; background: #000;
+  border-radius: 32px; overflow: hidden;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+}
+.device-container .screen-surface {
+  position: relative; overflow: hidden;
+}
+.device-container .screen-surface img {
+  display: block;
+  height: calc(100vh - 130px);
+  width: auto;
+  user-select: none; -webkit-user-drag: none;
+}
+.device-container .screen-surface .placeholder {
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 8px; aspect-ratio: 402/874;
+  color: #484f58; font-size: 13px; font-family: monospace; background: #161b22;
+}
+
+/* ─── DOM overlay ─── */
+.dom-overlay {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  pointer-events: none; transition: opacity 0.2s;
+}
+.dom-overlay.hidden { opacity: 0; pointer-events: none !important; }
+.dom-box {
+  position: absolute;
+  border: 1.5px solid transparent;
+  pointer-events: auto; cursor: pointer;
+}
+.dom-box:hover {
+  background: rgba(59,130,246,0.12);
+  border-color: rgba(59,130,246,0.85);
+}
+
+/* ─── Tooltip (智能定位) ─── */
+.dom-tooltip {
+  position: fixed; z-index: 1000; pointer-events: none; display: none;
+  background: #1c1c1e; color: #e6edf3;
+  border: 1px solid rgba(255,255,255,0.15); border-radius: 8px;
+  padding: 6px 10px; font-size: 11px; font-family: 'SF Mono', ui-monospace, monospace;
+  max-width: 320px; white-space: pre-wrap; line-height: 1.5;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+}
+.tt-label { color: #e6edf3; font-weight: 500; }
+.tt-traits { color: #8b949e; }
+.tt-bounds { color: #58a6ff; font-size: 10px; display: block; margin-top: 2px; }
 </style>
 </head>
 <body>
+
+<!-- Toolbar -->
 <div class="toolbar">
-  <h1>iPilot</h1>
-  <span class="status" id="status">connecting...</span>
-  <button onclick="refresh()">Refresh</button>
-</div>
-<div class="preview-container">
-  <div class="device-frame" id="frame">
-    <div class="no-screenshot" id="placeholder">No screenshot yet.<br>Run an ios-use command.</div>
-    <img id="screenshot" style="display:none" alt="Device screenshot">
-    <div class="dom-overlay" id="overlay"></div>
+  <div class="toolbar-title">
+    <span class="name">iPilot Device</span>
+    <span class="subtitle">iPhone · USB</span>
+  </div>
+  <div class="toolbar-actions">
+    <button class="tb-btn" id="btnRefresh" title="Refresh" onclick="refresh()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+        <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+      </svg>
+    </button>
+    <button class="tb-btn" id="btnDom" title="Toggle DOM Frames" onclick="toggleDom()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="18" height="18" rx="2"/><rect x="7" y="7" width="4" height="4"/><rect x="13" y="7" width="4" height="4"/><rect x="7" y="13" width="4" height="4"/>
+      </svg>
+    </button>
   </div>
 </div>
+
+<!-- Status bar -->
+<div class="statusbar">
+  <div class="status"><span class="dot" id="dot"></span><span id="statusText">connecting</span></div>
+  <div class="zoom-ctrl">
+    <button onclick="zoomOut()">−</button>
+    <span id="zoomLabel">100%</span>
+    <button onclick="zoomIn()">+</button>
+    <button onclick="zoomFit()">Fit</button>
+  </div>
+</div>
+
+<!-- Viewport -->
+<div class="viewport" id="viewport">
+  <div class="device-container" id="deviceContainer">
+    <div class="screen-surface" id="screenSurface">
+      <div class="placeholder" id="placeholder">
+        <svg width="32" height="32" fill="none" stroke="#484f58" stroke-width="1.5" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="18" rx="3"/><circle cx="12" cy="12" r="3"/></svg>
+        <span>Waiting for screenshot...</span>
+      </div>
+      <img id="screenshot" style="display:none" alt="Device screenshot">
+      <div class="dom-overlay" id="overlay"></div>
+    </div>
+  </div>
+</div>
+
 <div class="dom-tooltip" id="tooltip"></div>
 
 <script>
@@ -198,63 +334,92 @@ const img = document.getElementById('screenshot');
 const placeholder = document.getElementById('placeholder');
 const overlay = document.getElementById('overlay');
 const tooltip = document.getElementById('tooltip');
-const status = document.getElementById('status');
-let currentVersion = -1;
+const statusText = document.getElementById('statusText');
+const dot = document.getElementById('dot');
+const deviceContainer = document.getElementById('deviceContainer');
+const btnDom = document.getElementById('btnDom');
 
+let currentVersion = -1;
+let showDom = true;
+let zoomLevel = 100;
+
+// ─── Zoom ───
+function updateZoom() {
+  var baseH = window.innerHeight - 130;
+  img.style.height = (baseH * zoomLevel / 100) + 'px';
+  document.getElementById('zoomLabel').textContent = zoomLevel + '%';
+  // 缩放后重新定位 DOM 框
+  setTimeout(function() { loadDom(); }, 50);
+}
+function zoomIn() { zoomLevel = Math.min(200, zoomLevel + 20); updateZoom(); }
+function zoomOut() { zoomLevel = Math.max(40, zoomLevel - 20); updateZoom(); }
+function zoomFit() { zoomLevel = 100; updateZoom(); }
+
+// ─── Toggles ───
+function toggleDom() {
+  showDom = !showDom;
+  overlay.classList.toggle('hidden', !showDom);
+  btnDom.classList.toggle('active', showDom);
+}
+btnDom.classList.add('active');
+
+// ─── Data loading ───
 function loadScreenshot() {
-  const t = Date.now();
   const newImg = new Image();
-  newImg.onload = () => {
-    img.src = newImg.src;
-    img.style.display = 'block';
-    placeholder.style.display = 'none';
-  };
-  newImg.src = '/screenshot?t=' + t;
+  newImg.onload = () => { img.src = newImg.src; img.style.display = 'block'; placeholder.style.display = 'none'; };
+  newImg.src = '/screenshot?t=' + Date.now();
 }
 
 async function loadDom() {
   try {
     const res = await fetch('/dom?t=' + Date.now());
     if (!res.ok) return;
-    const text = await res.text();
-    renderDomOverlay(text);
+    renderDomOverlay(await res.text());
   } catch {}
 }
 
+// ─── DOM parsing ───
 function parseDomTree(text) {
-  // ios-use dom 格式: 缩进式文本, 每行格式:
-  // <ref> <label> [<Type>] {{x, y}, {w, h}}
   const elements = [];
   const lines = text.split('\\n');
-  const boundsRe = /\\{\\{(\\d+(?:\\.\\d+)?),\\s*(\\d+(?:\\.\\d+)?)\\},\\s*\\{(\\d+(?:\\.\\d+)?),\\s*(\\d+(?:\\.\\d+)?)\\}\\}/;
-  const refRe = /^\\s*(\\w+)\\s+/;
-  const typeRe = /\\[(\\w+)\\]/;
-
+  const boundsRe = /\\((\\d+),(\\d+),(\\d+),(\\d+)\\)/;
+  const typeRe = /\\[([^\\]]+)\\]/;
   for (const line of lines) {
     const bm = line.match(boundsRe);
     if (!bm) continue;
-    const ref = line.match(refRe)?.[1] ?? '';
-    const type = line.match(typeRe)?.[1] ?? '';
-    const label = line.replace(boundsRe, '').replace(typeRe, '').replace(refRe, '').trim();
-    elements.push({
-      ref, type, label,
-      x: parseFloat(bm[1]), y: parseFloat(bm[2]),
-      w: parseFloat(bm[3]), h: parseFloat(bm[4]),
-    });
+    const typeMatch = line.match(typeRe);
+    const traits = typeMatch ? typeMatch[1] : '';
+    if (traits.includes('invisible')) continue;
+    const beforeType = line.substring(0, typeMatch ? typeMatch.index : line.length);
+    const label = beforeType.replace(/^[\\s-]+/, '').trim();
+    elements.push({ traits, label, x: +bm[1], y: +bm[2], w: +bm[3], h: +bm[4] });
   }
   return elements;
 }
 
+// ─── DOM overlay rendering ───
 function renderDomOverlay(text) {
   overlay.innerHTML = '';
   if (!img.naturalWidth) return;
-
   const elements = parseDomTree(text);
-  const scaleX = img.clientWidth / img.naturalWidth;
-  const scaleY = img.clientHeight / img.naturalHeight;
+  if (!elements.length) return;
 
-  for (const el of elements) {
-    if (el.w < 2 || el.h < 2) continue;
+  // 用根元素 bounds 作为逻辑屏幕尺寸（第一个匹配到 bounds 的元素）
+  const logicalW = elements[0].w || 402;
+  const logicalH = elements[0].h || 874;
+  const scaleX = img.clientWidth / logicalW;
+  const scaleY = img.clientHeight / logicalH;
+
+  // 过滤不可见后，按面积从大到小排序：大元素先渲染（底层），小元素后渲染（顶层接收事件）
+  const sorted = elements.filter(el => {
+    if (el.w < 2 || el.h < 2) return false;
+    // 去掉等于屏幕尺寸的全屏容器
+    if (el.x === 0 && el.y === 0 && el.w === logicalW && el.h === logicalH) return false;
+    return true;
+  });
+  sorted.sort((a, b) => (b.w * b.h) - (a.w * a.h));
+
+  for (const el of sorted) {
     const box = document.createElement('div');
     box.className = 'dom-box';
     box.style.left = (el.x * scaleX) + 'px';
@@ -262,55 +427,68 @@ function renderDomOverlay(text) {
     box.style.width = (el.w * scaleX) + 'px';
     box.style.height = (el.h * scaleY) + 'px';
 
-    const info = [el.ref, el.type, el.label].filter(Boolean).join(' ');
-    box.addEventListener('mouseenter', (e) => {
-      tooltip.textContent = info;
+    box.addEventListener('mouseenter', () => {
+      let html = '';
+      if (el.label) html += '<span class="tt-label">' + esc(el.label) + '</span>';
+      if (el.traits) html += ' <span class="tt-traits">[' + esc(el.traits) + ']</span>';
+      html += '<span class="tt-bounds">(' + el.x + ', ' + el.y + ', ' + el.w + ', ' + el.h + ')</span>';
+      tooltip.innerHTML = html;
       tooltip.style.display = 'block';
     });
-    box.addEventListener('mousemove', (e) => {
-      tooltip.style.left = (e.clientX + 12) + 'px';
-      tooltip.style.top = (e.clientY + 12) + 'px';
-    });
-    box.addEventListener('mouseleave', () => {
-      tooltip.style.display = 'none';
-    });
-
+    box.addEventListener('mousemove', (e) => positionTooltip(e));
+    box.addEventListener('mouseleave', () => { tooltip.style.display = 'none'; });
     overlay.appendChild(box);
   }
 }
 
-// SSE 监听
+// ─── Tooltip 智能定位 (避免被边缘裁切) ───
+function positionTooltip(e) {
+  const pad = 14;
+  const tw = tooltip.offsetWidth;
+  const th = tooltip.offsetHeight;
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  let x = e.clientX + pad;
+  let y = e.clientY + pad;
+  // 右侧溢出 → 移到左边
+  if (x + tw > vw - 8) x = e.clientX - tw - pad;
+  // 底部溢出 → 移到上方
+  if (y + th > vh - 8) y = e.clientY - th - pad;
+  // 保底
+  if (x < 4) x = 4;
+  if (y < 4) y = 4;
+  tooltip.style.left = x + 'px';
+  tooltip.style.top = y + 'px';
+}
+
+function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ─── SSE ───
 function connectSSE() {
   const es = new EventSource('/events');
   es.addEventListener('update', (e) => {
     const data = JSON.parse(e.data);
     if (data.version !== currentVersion) {
       currentVersion = data.version;
-      loadScreenshot();
-      loadDom();
-      status.textContent = 'updated #' + data.version;
+      loadScreenshot(); loadDom();
+      statusText.textContent = 'updated';
+      dot.className = 'dot';
     }
   });
-  es.addEventListener('open', () => { status.textContent = 'connected'; });
-  es.addEventListener('error', () => {
-    status.textContent = 'reconnecting...';
-    setTimeout(() => connectSSE(), 2000);
-  });
+  es.addEventListener('open', () => { statusText.textContent = 'connected'; dot.className = 'dot'; });
+  es.addEventListener('error', () => { statusText.textContent = 'reconnecting'; dot.className = 'dot disconnected'; });
 }
 
 async function refresh() {
-  status.textContent = 'refreshing...';
+  statusText.textContent = 'refreshing'; dot.className = 'dot refreshing';
   try { await fetch('/refresh', { method: 'POST' }); } catch {}
 }
 
-// 初始加载
-loadScreenshot();
-loadDom();
-connectSSE();
-
-// 截图加载后重绘 DOM 框
+// ─── Init ───
+loadScreenshot(); loadDom(); connectSSE();
 img.addEventListener('load', () => loadDom());
 window.addEventListener('resize', () => loadDom());
+new ResizeObserver(() => loadDom()).observe(deviceContainer);
 </script>
 </body>
 </html>`;
