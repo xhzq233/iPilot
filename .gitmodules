@@ -1,0 +1,6 @@
+[submodule "deps/ios-use"]
+	path = deps/ios-use
+	url = git@github.com:xhzq233/ios-use.git
+[submodule "skills/altsign-skill"]
+	path = skills/altsign-skill
+	url = git@github.com:xhzq233/altsign-cli.git

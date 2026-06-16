@@ -408,7 +408,6 @@ function renderDomOverlay(text) {
     box.className = 'dom-box';
     box.type = 'button';
     box.setAttribute('aria-label', annotation);
-    box.setAttribute('title', annotation);
     box.dataset.ipilotLabel = el.label;
     box.dataset.ipilotTraits = el.traits;
     box.dataset.ipilotBounds = '(' + el.x + ', ' + el.y + ', ' + el.w + ', ' + el.h + ')';
