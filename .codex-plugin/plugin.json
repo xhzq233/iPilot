@@ -14,7 +14,14 @@
   "interface": {
     "displayName": "iPilot",
     "shortDescription": "Real-device iOS preview, build, and profiling for Codex",
+    "longDescription": "iPilot helps Codex work with physical iOS devices over USB, including real-device previews, build and install workflows, and ETTrace-based performance profiling.",
+    "developerName": "xhzq233",
     "category": "Development",
-    "capabilities": ["Read", "Write"]
+    "capabilities": ["Read", "Write"],
+    "defaultPrompt": [
+      "Preview my iOS app on a real device.",
+      "Profile iOS launch time with ETTrace.",
+      "Build and install this iOS app on USB hardware."
+    ]
   }
 }

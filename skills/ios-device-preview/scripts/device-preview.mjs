@@ -16,7 +16,7 @@ const PORT = 3200;
 const PREVIEW_URL = `http://localhost:${PORT}`;
 
 // ios-use 操作命令：执行后需要自动截图+DOM
-const ACTION_RE = /\bios-use\s+(tap|swipe|input|longpress|home|activateApp|dismissAlert|openUrl|dom|launch|terminate)\b/;
+const ACTION_RE = /\bios-use\s+(tap|swipe|input|longpress|home|activateApp|dismissAlert|openUrl|dom|screenshot|launch|terminate)\b/;
 
 // ────────────────────────────────────────
 // 角色 1: Hook Handler
