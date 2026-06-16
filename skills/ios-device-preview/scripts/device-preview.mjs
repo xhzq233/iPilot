@@ -13,6 +13,7 @@ const IPILOT_DIR = join(homedir(), ".ipilot");
 const SCREENSHOT_PATH = join(IPILOT_DIR, "snapshot.jpg");
 const DOM_PATH = join(IPILOT_DIR, "snapshot.txt");
 const PORT = 3200;
+const PREVIEW_URL = `http://localhost:${PORT}`;
 
 // ios-use 操作命令：执行后需要自动截图+DOM
 const ACTION_RE = /\bios-use\s+(tap|swipe|input|longpress|home|activateApp|dismissAlert|openUrl|dom|launch|terminate)\b/;
@@ -146,7 +147,9 @@ function startServer() {
   });
 
   server.listen(PORT, () => {
-    console.log(`iPilot Preview: http://localhost:${PORT}`);
+    console.log("");
+    console.log(`  - Local:   ${PREVIEW_URL}`);
+    console.log("");
   });
 }
 
@@ -168,55 +171,51 @@ body {
   display: flex; flex-direction: column; height: 100vh; overflow: hidden;
 }
 
-/* ─── Toolbar (SimulatorToolbar 风格) ─── */
-.toolbar {
-  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
-  gap: 4px 12px; padding: 8px 12px;
-  background: #1c1c1e; border-bottom: 1px solid rgba(255,255,255,0.1);
-  flex-shrink: 0;
+/* ─── Floating HUD ─── */
+.floating-status,
+.floating-controls,
+.zoom-ctrl {
+  position: fixed; z-index: 20;
+  display: flex; align-items: center;
+  background: rgba(28,28,30,0.78);
+  border: 1px solid rgba(255,255,255,0.12);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.28);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
 }
-.toolbar-title {
-  display: flex; flex-direction: column; gap: 1px;
+.floating-status {
+  top: 10px; left: 10px;
+  gap: 6px; height: 30px; padding: 0 10px;
+  border-radius: 8px;
+  font-size: 11px; font-family: monospace;
+  color: rgba(255,255,255,0.78);
 }
-.toolbar-title .name {
-  font-size: 12px; font-weight: 600; color: #fff;
+.floating-controls {
+  top: 10px; right: 10px;
+  gap: 3px; padding: 3px;
+  border-radius: 8px;
 }
-.toolbar-title .subtitle {
-  font-size: 10px; color: rgba(255,255,255,0.5);
-}
-.toolbar-actions {
-  display: flex; align-items: center; gap: 4px;
-}
-.tb-btn {
+.hud-btn {
   background: transparent; border: none; padding: 6px; border-radius: 6px;
   cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
-  color: rgba(255,255,255,0.8); transition: background 0.15s;
+  color: rgba(255,255,255,0.82); transition: background 0.15s, color 0.15s;
 }
-.tb-btn:hover { background: rgba(255,255,255,0.1); }
-.tb-btn.active { background: rgba(59,130,246,0.2); color: #58a6ff; }
-.tb-btn:disabled { color: rgba(255,255,255,0.25); cursor: not-allowed; }
-.tb-btn svg { width: 18px; height: 18px; }
-
-/* ─── 状态栏 ─── */
-.statusbar {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 4px 12px; border-bottom: 1px solid rgba(255,255,255,0.06);
-  background: rgba(255,255,255,0.02); flex-shrink: 0;
-}
-.statusbar .status {
-  display: flex; align-items: center; gap: 6px; font-size: 11px; font-family: monospace;
-}
-.statusbar .dot {
+.hud-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+.hud-btn svg { width: 18px; height: 18px; }
+.dot {
   width: 8px; height: 8px; border-radius: 50%; background: #4ade80;
   transition: background 0.3s;
 }
-.statusbar .dot.disconnected { background: #ef4444; }
-.statusbar .dot.refreshing { background: #facc15; }
+.dot.disconnected { background: #ef4444; }
+.dot.refreshing { background: #facc15; }
 .zoom-ctrl {
-  display: flex; align-items: center; gap: 4px; font-size: 11px; font-family: monospace; color: #8b949e;
+  bottom: 10px; right: 10px;
+  gap: 4px; padding: 3px;
+  border-radius: 8px;
+  font-size: 11px; font-family: monospace; color: #8b949e;
 }
 .zoom-ctrl button {
-  background: rgba(255,255,255,0.08); border: none; color: #e6edf3;
+  background: transparent; border: none; color: #e6edf3;
   width: 22px; height: 22px; border-radius: 4px; cursor: pointer;
   font-size: 13px; line-height: 1; display: inline-flex; align-items: center; justify-content: center;
 }
@@ -239,7 +238,7 @@ body {
 }
 .device-container .screen-surface img {
   display: block;
-  height: calc(100vh - 130px);
+  height: calc(100vh - 32px);
   width: auto;
   user-select: none; -webkit-user-drag: none;
 }
@@ -252,17 +251,25 @@ body {
 /* ─── DOM overlay ─── */
 .dom-overlay {
   position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-  pointer-events: none; transition: opacity 0.2s;
+  pointer-events: auto; transition: opacity 0.2s;
 }
-.dom-overlay.hidden { opacity: 0; pointer-events: none !important; }
 .dom-box {
   position: absolute;
+  display: block;
+  margin: 0; padding: 0;
+  background: transparent;
   border: 1.5px solid transparent;
+  border-radius: 3px;
+  color: transparent;
+  appearance: none; -webkit-appearance: none;
   pointer-events: auto; cursor: pointer;
+  font-size: 0;
+  outline: none;
 }
-.dom-box:hover {
+.dom-box:hover, .dom-box:focus-visible {
   background: rgba(59,130,246,0.12);
   border-color: rgba(59,130,246,0.85);
+  box-shadow: 0 0 0 1px rgba(59,130,246,0.45);
 }
 
 /* ─── Tooltip (智能定位) ─── */
@@ -281,36 +288,22 @@ body {
 </head>
 <body>
 
-<!-- Toolbar -->
-<div class="toolbar">
-  <div class="toolbar-title">
-    <span class="name">iPilot Device</span>
-    <span class="subtitle">iPhone · USB</span>
-  </div>
-  <div class="toolbar-actions">
-    <button class="tb-btn" id="btnRefresh" title="Refresh" onclick="refresh()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
-        <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
-      </svg>
-    </button>
-    <button class="tb-btn" id="btnDom" title="Toggle DOM Frames" onclick="toggleDom()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="3" y="3" width="18" height="18" rx="2"/><rect x="7" y="7" width="4" height="4"/><rect x="13" y="7" width="4" height="4"/><rect x="7" y="13" width="4" height="4"/>
-      </svg>
-    </button>
-  </div>
+<div class="floating-status">
+  <span class="dot" id="dot"></span><span id="statusText">connecting</span>
 </div>
-
-<!-- Status bar -->
-<div class="statusbar">
-  <div class="status"><span class="dot" id="dot"></span><span id="statusText">connecting</span></div>
-  <div class="zoom-ctrl">
-    <button onclick="zoomOut()">−</button>
-    <span id="zoomLabel">100%</span>
-    <button onclick="zoomIn()">+</button>
-    <button onclick="zoomFit()">Fit</button>
-  </div>
+<div class="floating-controls">
+  <button class="hud-btn" id="btnRefresh" title="Refresh" onclick="refresh()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+      <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+    </svg>
+  </button>
+</div>
+<div class="zoom-ctrl">
+  <button onclick="zoomOut()">−</button>
+  <span id="zoomLabel">80%</span>
+  <button onclick="zoomIn()">+</button>
+  <button onclick="zoomFit()">Fit</button>
 </div>
 
 <!-- Viewport -->
@@ -337,15 +330,13 @@ const tooltip = document.getElementById('tooltip');
 const statusText = document.getElementById('statusText');
 const dot = document.getElementById('dot');
 const deviceContainer = document.getElementById('deviceContainer');
-const btnDom = document.getElementById('btnDom');
 
 let currentVersion = -1;
-let showDom = true;
-let zoomLevel = 100;
+let zoomLevel = 80;
 
 // ─── Zoom ───
 function updateZoom() {
-  var baseH = window.innerHeight - 130;
+  var baseH = window.innerHeight - 32;
   img.style.height = (baseH * zoomLevel / 100) + 'px';
   document.getElementById('zoomLabel').textContent = zoomLevel + '%';
   // 缩放后重新定位 DOM 框
@@ -354,14 +345,6 @@ function updateZoom() {
 function zoomIn() { zoomLevel = Math.min(200, zoomLevel + 20); updateZoom(); }
 function zoomOut() { zoomLevel = Math.max(40, zoomLevel - 20); updateZoom(); }
 function zoomFit() { zoomLevel = 100; updateZoom(); }
-
-// ─── Toggles ───
-function toggleDom() {
-  showDom = !showDom;
-  overlay.classList.toggle('hidden', !showDom);
-  btnDom.classList.toggle('active', showDom);
-}
-btnDom.classList.add('active');
 
 // ─── Data loading ───
 function loadScreenshot() {
@@ -420,12 +403,24 @@ function renderDomOverlay(text) {
   sorted.sort((a, b) => (b.w * b.h) - (a.w * a.h));
 
   for (const el of sorted) {
-    const box = document.createElement('div');
+    const box = document.createElement('button');
+    const annotation = annotationText(el);
     box.className = 'dom-box';
+    box.type = 'button';
+    box.setAttribute('aria-label', annotation);
+    box.setAttribute('title', annotation);
+    box.dataset.ipilotLabel = el.label;
+    box.dataset.ipilotTraits = el.traits;
+    box.dataset.ipilotBounds = '(' + el.x + ', ' + el.y + ', ' + el.w + ', ' + el.h + ')';
+    box.dataset.codexAnnotation = annotation;
     box.style.left = (el.x * scaleX) + 'px';
     box.style.top = (el.y * scaleY) + 'px';
     box.style.width = (el.w * scaleX) + 'px';
     box.style.height = (el.h * scaleY) + 'px';
+    box.addEventListener('click', (e) => {
+      e.preventDefault();
+      box.focus();
+    });
 
     box.addEventListener('mouseenter', () => {
       let html = '';
@@ -439,6 +434,14 @@ function renderDomOverlay(text) {
     box.addEventListener('mouseleave', () => { tooltip.style.display = 'none'; });
     overlay.appendChild(box);
   }
+}
+
+function annotationText(el) {
+  const parts = [];
+  if (el.label) parts.push(el.label);
+  if (el.traits) parts.push('[' + el.traits + ']');
+  parts.push('frame (' + el.x + ', ' + el.y + ', ' + el.w + ', ' + el.h + ')');
+  return parts.join(' ');
 }
 
 // ─── Tooltip 智能定位 (避免被边缘裁切) ───
@@ -485,7 +488,7 @@ async function refresh() {
 }
 
 // ─── Init ───
-loadScreenshot(); loadDom(); connectSSE();
+updateZoom(); loadScreenshot(); loadDom(); connectSSE();
 img.addEventListener('load', () => loadDom());
 window.addEventListener('resize', () => loadDom());
 new ResizeObserver(() => loadDom()).observe(deviceContainer);

@@ -13,7 +13,13 @@ Start the device preview server to show real-device screenshots with DOM element
 node "$SKILL_DIR/scripts/device-preview.mjs" serve
 ```
 
-The server runs at `http://localhost:3200`. Open it in the Codex browser panel.
+The server prints a dev-server style local URL:
+
+```text
+  - Local:   http://localhost:3200
+```
+
+Keep the terminal alive while the preview is in use. The Codex app can use that local URL for the in-app browser preview; if it does not open automatically, open `http://localhost:3200` in the Codex browser panel.
 
 ## How It Works
 
