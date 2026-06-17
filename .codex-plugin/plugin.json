@@ -1,25 +1,25 @@
 {
   "name": "ipilot",
   "version": "0.1.0",
-  "description": "Real-device iOS development and verification plugin for Codex. Screenshot + DOM preview, ETTrace profiling, build/install automation — all on physical iPhones via USB.",
+  "description": "Real-device iOS development and verification plugin for Codex. One portable skill for ios-use automation, AltSign signing, live preview, and ETTrace profiling.",
   "author": {
     "name": "xhzq233",
     "url": "https://github.com/xhzq233"
   },
   "repository": "https://github.com/xhzq233/iPilot",
   "license": "MIT",
-  "keywords": ["ios", "real-device", "preview", "ios-use", "xcodebuild"],
+  "keywords": ["ios", "real-device", "preview", "ios-use", "altsign", "ettrace"],
   "skills": "./skills/",
   "hooks": "./hooks.json",
   "interface": {
     "displayName": "iPilot",
-    "shortDescription": "Real-device iOS preview, build, and profiling for Codex",
-    "longDescription": "iPilot helps Codex work with physical iOS devices over USB, including real-device previews, build and install workflows, and ETTrace-based performance profiling.",
+    "shortDescription": "One portable iOS device skill for agents",
+    "longDescription": "iPilot helps agents work with physical iOS devices over USB, including ios-use UI automation, AltSign signing, live screenshot/DOM previews, and ETTrace-based performance profiling.",
     "developerName": "xhzq233",
     "category": "Development",
     "capabilities": ["Read", "Write"],
     "defaultPrompt": [
-      "Preview my iOS app on a real device.",
+      "Drive my iOS app on a real device.",
       "Profile iOS launch time with ETTrace.",
       "Build and install this iOS app on USB hardware."
     ]

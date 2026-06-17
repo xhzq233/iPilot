@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// device-preview.mjs — iPilot Codex Plugin
+// device-preview.mjs - iPilot Skill/Plugin helper
 // 角色 1: PostToolUse hook handler (stdin → match ios-use → screenshot+dom)
 // 角色 2: Preview HTTP server (fs.watch → SSE → 截图+DOM框)
 

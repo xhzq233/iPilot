@@ -1,55 +1,39 @@
----
-name: ios-ettrace-device
-description: Capture and interpret ETTrace profiles on a real iOS device via USB. Use when profiling launch or runtime latency on physical hardware.
----
+# iOS ETTrace Performance
 
-# iOS ETTrace Performance (Real Device)
-
-Use this skill to capture a focused, symbolicated ETTrace profile from a USB-connected iOS device. The device must be connected via USB (PeerTalk over usbmuxd).
+Use this reference to capture a focused, symbolicated ETTrace profile from a USB-connected iOS device. The device must be connected via USB because ETTrace communicates with the on-device framework through PeerTalk over usbmuxd.
 
 ## Core Workflow
 
-1. Pick one focused flow and write down the expected start and stop points.
-2. Build the app for iphoneos with dSYM generation enabled.
-3. Temporarily link ETTrace into that app target.
-4. Install the app on the device (via ios-deploy, devicectl, or Xcode).
+1. Pick one focused flow and define exact start and stop points.
+2. Build the app for `iphoneos` with dSYM generation enabled.
+3. Temporarily link ETTrace into the app target.
+4. Install the app on the device.
 5. Collect UUID-matched dSYMs for the app executable and embedded dynamic frameworks.
-6. Launch the app by tapping the icon on the device home screen (NOT from Xcode).
+6. Launch the app by tapping the icon on the device home screen, not from Xcode.
 7. Capture one launch or runtime trace.
 8. Preserve the processed flamegraph JSON immediately after the run.
-9. Analyze only the processed JSON and report the flow, artifacts, hotspots, and caveats.
+9. Analyze only the processed JSON and report artifacts, hotspots, and caveats.
 
 Avoid broad "use the app for a while" captures. One trace should correspond to one user-visible flow.
 
 ## Setup
-
-Use a writable run folder for each profiling session:
 
 ```bash
 if [ -z "${RUN_DIR:-}" ]; then
   RUN_DIR="$(mktemp -d "${TMPDIR:-/tmp}/ipilot-ettrace.XXXXXX")"
 fi
 mkdir -p "$RUN_DIR"
-```
-
-Install the ETTrace runner CLI if it is not already available:
-
-```bash
 brew install emergetools/homebrew-tap/ettrace
 ```
 
-`ettrace` communicates with the on-device framework via PeerTalk over USB. The device must be connected and trusted.
-
 ## Link ETTrace Into The App
-
-Wire ETTrace into the exact app target being profiled. Keep the integration temporary.
 
 Preferred options:
 
 - Reuse an existing `ETTrace.xcframework` if the repo already vendors one.
-- If none exists, build a device copy into `RUN_DIR` from the upstream ETTrace package.
-- Link the framework directly into the app target.
-- Confirm launch logs print `Starting ETTrace` (visible in Console.app or devicectl).
+- If none exists, build a device copy into `$RUN_DIR` from upstream ETTrace.
+- Link the framework directly into the exact app target being profiled.
+- Confirm launch logs print `Starting ETTrace`.
 
 Build a device framework when needed:
 
@@ -80,8 +64,6 @@ popd >/dev/null
 
 ## Build The App
 
-Build with dSYM generation enabled:
-
 ```bash
 xcodebuild -scheme "$SCHEME" \
   -sdk iphoneos \
@@ -96,21 +78,15 @@ xcodebuild -scheme "$SCHEME" \
 Install to device:
 
 ```bash
-# Option A: ios-deploy
-ios-deploy --bundle "$APP_PATH"
-
-# Option B: devicectl (Xcode 15+)
-xcrun devicectl device install app --device "$DEVICE_ID" "$APP_PATH"
+ios-use install "$APP_PATH" --udid "$UDID"
 ```
 
 ## Symbolication Gate
 
-Real device builds strip symbols. dSYMs are mandatory — never skip this step.
-
-Collect dSYMs after the final build:
+Real device builds strip symbols. dSYMs are mandatory.
 
 ```bash
-SKILL_DIR="<absolute path to this loaded skill folder>"
+SKILL_DIR="<absolute path to skills/ipilot>"
 APP="<path-to-built-iphoneos-App.app>"
 DSYMS="$RUN_DIR/dsyms"
 
@@ -131,9 +107,7 @@ find "$DSYMS" -maxdepth 1 -type d -name '*.dSYM' -print -exec dwarfdump --uuid {
 
 ## Capture
 
-**Important**: Launch the app by tapping the icon on the device. Do NOT launch from Xcode — the debugger interferes with sampling accuracy.
-
-For launch traces:
+Launch traces:
 
 ```bash
 cd "$RUN_DIR"
@@ -143,7 +117,7 @@ find "$RUN_DIR" -maxdepth 1 \( -name 'output.json' -o -name 'output_*.json' \) -
 ettrace --launch --verbose --dsyms "$DSYMS"
 ```
 
-For runtime flow traces:
+Runtime flow traces:
 
 ```bash
 cd "$RUN_DIR"
@@ -152,8 +126,6 @@ CAPTURE_MARKER="$RUN_DIR/.ettrace-capture-start"
 find "$RUN_DIR" -maxdepth 1 \( -name 'output.json' -o -name 'output_*.json' \) -delete
 ettrace --verbose --dsyms "$DSYMS"
 ```
-
-Start from a stable screen, start ETTrace, perform exactly one focused flow on the device, wait until visible work is complete, then stop the runner (press Enter or Ctrl+C).
 
 For multi-thread profiling, add `--multi-thread`.
 
@@ -180,19 +152,6 @@ if [ ! -s "$PRESERVED_DIR/summary.txt" ]; then
 fi
 ```
 
-## Read The Profile
+## Report
 
-Start from `run-*/summary.txt`, then inspect processed JSON directly if needed.
-
-Report:
-
-- exact flow, app build, device model/iOS version, and run count
-- processed flamegraph JSON paths
-- top active leaves and inclusive first-party stacks with sample weights or percentages
-- whether symbols were complete for app-owned binaries
-- caveats: thermal state, background activity, first-run setup, network variance, low sample count
-- before/after deltas only when the same flow was captured with comparable setup
-
-## Cleanup
-
-Remove temporary ETTrace app wiring when profiling is complete unless the user asked to keep it. Keep or discard run artifacts based on the active task.
+Report exact flow, build, device model/iOS version, run count, processed JSON paths, top active leaves, inclusive first-party stacks, dSYM completeness, and caveats such as thermal state, background activity, first-run setup, network variance, or low sample count.

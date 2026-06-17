@@ -1,24 +1,27 @@
----
-name: altsign-skill
-description: Sign iOS IPA files or .app bundles with altsign-cli using a free Apple ID, cached session, device UDID, provisioning profile creation, and 2FA-aware authentication. Use when a task needs to sign an iOS app for installation on a physical device, especially before ios-use install.
----
+# AltSign CLI Signing
 
-# AltSign CLI Skill
+Use `altsign-cli` to sign iOS apps for physical-device installation. It accepts an existing `.ipa` or a built `.app` bundle and writes a signed `.ipa`.
 
-Use `altsign-cli` to sign iOS apps for physical-device installation. It accepts either an existing `.ipa` or a built `.app` bundle and always outputs a signed `.ipa`.
+## Install
 
-## Preconditions
-
-- macOS with Xcode Command Line Tools.
-- OpenSSL 3 installed, usually `brew install openssl`.
-- A USB device UDID from `ios-use devices`, `xcrun devicectl list devices`, or Finder/Xcode.
-- `altsign-cli` built in this repo:
+Pinned version: `v0.1.3`
 
 ```bash
+brew install openssl
+curl -L https://github.com/xhzq233/altsign-cli/archive/refs/tags/v0.1.3.tar.gz -o altsign-cli-v0.1.3.tar.gz
+tar -xzf altsign-cli-v0.1.3.tar.gz
+cd altsign-cli-0.1.3
 ./build.sh
 ```
 
-First-time login needs `--apple-id` and `--password`. If Apple requires 2FA, the CLI prompts for the 6-digit code. When a valid session is cached, credentials can be omitted.
+Repository: `https://github.com/xhzq233/altsign-cli`
+
+## Preconditions
+
+- macOS 12+ with Xcode Command Line Tools.
+- OpenSSL 3 installed, usually `brew install openssl`.
+- A USB device UDID from `ios-use devices`, `xcrun devicectl list devices`, Finder, or Xcode.
+- First-time login needs `--apple-id` and `--password`. If Apple requires 2FA, the CLI prompts for the 6-digit code. When a valid session is cached, credentials can be omitted.
 
 ## Sign An IPA
 
@@ -52,8 +55,6 @@ With a cached session:
 The CLI packages the `.app` as a temporary IPA, resolves bundle IDs, creates or reuses App IDs and provisioning profiles, signs binaries, and writes the signed IPA.
 
 ## Install After Signing
-
-Use `ios-use install` with the signed IPA:
 
 ```bash
 ios-use install path/to/App_signed.ipa --udid 00000000-0000000000000000
