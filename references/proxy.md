@@ -7,18 +7,18 @@
 pip install mitmproxy
 
 # 1. 一次性：安装并信任 CA（HTTPS 解密所需，HTTP 抓包可跳过）
-ios-use proxy configca
+./ios-use proxy configca
 
 # 2. 启动抓包（后台运行，立即返回）
-ios-use proxy start
+./ios-use proxy start
 
 # 3. （操作设备，产生流量...）
 
 # 4. 停止抓包
-ios-use proxy stop
+./ios-use proxy stop
 
 # 5. 查看抓包数据（读取最近一次 proxy start 写入的 last capture）
-ios-use proxy read [--filter <表达式>] [--raw] [--last N]
+./ios-use proxy read [--filter <表达式>] [--raw] [--last N]
 ```
 
 ## 2. 抓包文件
@@ -28,35 +28,35 @@ ios-use proxy read [--filter <表达式>] [--raw] [--last N]
 ```
 ℹ Capture: /Users/xxx/.ios-use/artifacts/proxy-2026-05-13T05-33-13-861Z.mitm
 ℹ View with: mitmweb -r /Users/xxx/.ios-use/artifacts/proxy-2026-05-13T05-33-13-861Z.mitm
-ℹ Read with: ios-use proxy read
+ℹ Read with: ./ios-use proxy read
 ```
 
-文件保存在 `~/.ios-use/artifacts/`，命名格式 `proxy-<ISO-timestamp>.mitm`。`proxy start` 会把本次文件写为 last capture；`proxy stop` 不会删除 last capture，stop 后仍可继续用 `ios-use proxy read` 读取。
+文件保存在 `~/.ios-use/artifacts/`，命名格式 `proxy-<ISO-timestamp>.mitm`。`proxy start` 会把本次文件写为 last capture；`proxy stop` 不会删除 last capture，stop 后仍可继续用 `./ios-use proxy read` 读取。
 
 ## 3. 查看抓包
 
-### 3.1 ios-use proxy read
+### 3.1 `./ios-use proxy read`
 
 ```bash
 # 摘要
-ios-use proxy read
+./ios-use proxy read
 
 # 完整 headers + body
-ios-use proxy read --raw
+./ios-use proxy read --raw
 
 # 过滤
-ios-use proxy read --filter "~d example.com"
-ios-use proxy read --filter "~m POST"
+./ios-use proxy read --filter "~d example.com"
+./ios-use proxy read --filter "~m POST"
 
 # 只看最后 N 行
-ios-use proxy read --last 20
+./ios-use proxy read --last 20
 ```
 
-`proxy read` 只读取最近一次 `proxy start` 记录的 last capture。`--last` 必须大于 0。没有 last capture 或文件已删除时，先运行 `ios-use proxy start`。
+`proxy read` 只读取最近一次 `proxy start` 记录的 last capture。`--last` 必须大于 0。没有 last capture 或文件已删除时，先运行 `./ios-use proxy start`。
 
 ### 3.2 需要 mitmproxy 工具链时
 
-默认先用 `ios-use proxy read`。只有需要 GUI、HAR 导出或 `proxy read` 无法满足的高级过滤时，才直接使用 mitmproxy 工具链。
+默认先用 `./ios-use proxy read`。只有需要 GUI、HAR 导出或 `proxy read` 无法满足的高级过滤时，才直接使用 mitmproxy 工具链。
 
 ```bash
 mitmweb -n -r file.mitm
@@ -87,7 +87,7 @@ mitmdump -n -r file.mitm --set hardump=output.har
 3. 自动把设备当前 Wi-Fi 的 HTTP 代理指向 Mac
 4. 输出抓包文件路径，命令立即返回（mitmdump 在后台持续运行）
 
-网络前提：设备与 Mac 需要在同一 Wi-Fi/LAN，且设备能访问 Mac 的抓包端口。VPN、防火墙或隔离 Wi-Fi 可能导致抓不到流量或设备断网。排障先运行 `ios-use proxy doctor`，再检查 Mac 网卡/IP、防火墙和设备网络。
+网络前提：设备与 Mac 需要在同一 Wi-Fi/LAN，且设备能访问 Mac 的抓包端口。VPN、防火墙或隔离 Wi-Fi 可能导致抓不到流量或设备断网。排障先运行 `./ios-use proxy doctor`，再检查 Mac 网卡/IP、防火墙和设备网络。
 
 ### proxy stop 行为
 

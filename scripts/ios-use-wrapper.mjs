@@ -15,10 +15,11 @@ import { fileURLToPath } from "node:url";
 
 const SCRIPT_PATH = realpathSync(fileURLToPath(import.meta.url));
 const SKILL_DIR = dirname(dirname(SCRIPT_PATH));
-const WRAPPER_BIN_PATH = realpathOrNull(join(SKILL_DIR, "bin", "ios-use"));
+const WRAPPER_ROOT_PATH = realpathOrNull(join(SKILL_DIR, "ios-use"));
 const IPILOT_DIR = join(homedir(), ".ipilot");
 const DOM_PATH = join(IPILOT_DIR, "snapshot.txt");
 const SCREENSHOT_PATH = join(IPILOT_DIR, "snapshot.jpg");
+const DEVICE_PREVIEW_SCRIPT = join(SKILL_DIR, "scripts", "device-preview.mjs");
 
 const MUTATING_COMMANDS = new Set([
   "activateApp",
@@ -92,9 +93,17 @@ function childEnv() {
   return env;
 }
 
+function isWrapperPath(path) {
+  const real = realpathOrNull(path);
+  if (!real) return false;
+  if (real === SCRIPT_PATH) return true;
+  return Boolean(WRAPPER_ROOT_PATH && real === WRAPPER_ROOT_PATH);
+}
+
 function findRealIosUse() {
   if (process.env.IPILOT_IOS_USE_BIN) {
-    return executable(process.env.IPILOT_IOS_USE_BIN) ? process.env.IPILOT_IOS_USE_BIN : null;
+    if (!executable(process.env.IPILOT_IOS_USE_BIN)) return null;
+    return isWrapperPath(process.env.IPILOT_IOS_USE_BIN) ? null : process.env.IPILOT_IOS_USE_BIN;
   }
 
   for (const dir of (process.env.PATH || "").split(delimiter)) {
@@ -105,7 +114,7 @@ function findRealIosUse() {
     const real = realpathOrNull(candidate);
     if (!real) continue;
     if (real === SCRIPT_PATH) continue;
-    if (WRAPPER_BIN_PATH && real === WRAPPER_BIN_PATH) continue;
+    if (WRAPPER_ROOT_PATH && real === WRAPPER_ROOT_PATH) continue;
 
     return candidate;
   }
@@ -162,7 +171,34 @@ function refreshPreview(realBin, stdoutText, canReuseDom) {
   }
 }
 
-function passthrough(realBin, args) {
+function startPreviewServer() {
+  if (process.env.IPILOT_DISABLE_AUTO_PREVIEW === "1") return;
+
+  try {
+    const child = spawn(process.execPath, [DEVICE_PREVIEW_SCRIPT, "serve", "--quiet"], {
+      detached: true,
+      env: childEnv(),
+      stdio: "ignore",
+    });
+    child.unref();
+  } catch {
+    // Preview server startup must not change the wrapped command result.
+  }
+}
+
+function stopPreviewServer() {
+  try {
+    spawnSync(process.execPath, [DEVICE_PREVIEW_SCRIPT, "stop-server"], {
+      env: childEnv(),
+      stdio: "ignore",
+      timeout: 2000,
+    });
+  } catch {
+    // Preview server shutdown must not change the wrapped command result.
+  }
+}
+
+function passthrough(realBin, args, onSuccess) {
   const child = spawn(realBin, args, {
     env: childEnv(),
     stdio: "inherit",
@@ -172,6 +208,9 @@ function passthrough(realBin, args) {
     if (signal) {
       process.kill(process.pid, signal);
       return;
+    }
+    if (code === 0 && onSuccess) {
+      onSuccess();
     }
     process.exit(code ?? 1);
   });
@@ -184,28 +223,7 @@ function passthrough(realBin, args) {
 
 function runAndRefresh(realBin, args) {
   if (!hasDomOption(args)) {
-    const child = spawn(realBin, args, {
-      env: childEnv(),
-      stdio: "inherit",
-    });
-
-    child.on("exit", (code, signal) => {
-      if (signal) {
-        process.kill(process.pid, signal);
-        return;
-      }
-
-      if (code === 0) {
-        refreshPreview(realBin, "", false);
-      }
-
-      process.exit(code ?? 1);
-    });
-
-    child.on("error", (error) => {
-      console.error(`iPilot ios-use wrapper failed to run ${realBin}: ${error.message}`);
-      process.exit(127);
-    });
+    passthrough(realBin, args, () => refreshPreview(realBin, "", false));
     return;
   }
 
@@ -260,7 +278,14 @@ const shouldRefresh =
   MUTATING_COMMANDS.has(cmd) &&
   process.env.IPILOT_DISABLE_AUTO_PREVIEW !== "1";
 
-if (!shouldRefresh) {
+if (cmd === "start" && process.env.IPILOT_DISABLE_AUTO_PREVIEW !== "1") {
+  passthrough(realBin, args, () => {
+    startPreviewServer();
+    refreshPreview(realBin, "", false);
+  });
+} else if (cmd === "stop") {
+  passthrough(realBin, args, stopPreviewServer);
+} else if (!shouldRefresh) {
   passthrough(realBin, args);
 } else {
   runAndRefresh(realBin, args);

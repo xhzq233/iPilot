@@ -18,12 +18,13 @@ The server prints:
   - Local:   http://localhost:3200
 ```
 
-Keep the terminal alive while the preview is in use.
+Keep the terminal alive while the preview is in use. In normal agent workflows, `./ios-use start` starts this server automatically in the background and `./ios-use stop` exits it.
 
 ## How It Updates
 
 - Manual refresh: click the preview page refresh button or call the refresh command manually.
-- Automatic refresh: read `wrapper.md` and put the skill `bin` directory before the real `ios-use` in `PATH`.
+- Automatic server lifecycle: `./ios-use start` starts the preview server; `./ios-use stop` stops it.
+- Automatic snapshot refresh: mutating `./ios-use` commands refresh screenshot and DOM after success.
 
 ## Manual Snapshot Refresh
 
@@ -31,16 +32,16 @@ Keep the terminal alive while the preview is in use.
 node "$SKILL_DIR/scripts/device-preview.mjs" refresh
 ```
 
-The refresh command captures `ios-use screenshot --name snapshot` and `ios-use dom`, then writes the preview state under `~/.ipilot/`.
+The refresh command captures real `ios-use screenshot --name snapshot` and real `ios-use dom`, then writes the preview state under `~/.ipilot/`.
 
 ## Prerequisites
 
 - `ios-use` CLI installed.
-- `ios-use start <udid>` has selected an active real device.
+- `./ios-use start <udid>` has selected an active real device.
 - A real iPhone connected over USB with Developer Mode enabled.
 
 ## Notes
 
 - The preview server is view-only; it does not send commands to the device.
 - Drive the device with normal `ios-use` commands.
-- If preview is stale, first check whether `ios-use dom` and `ios-use screenshot --name snapshot` work manually.
+- If preview is stale, first check whether `./ios-use dom` and `./ios-use screenshot --name snapshot` work manually.

@@ -13,7 +13,7 @@ Use this reference only when the target is an iOS Simulator. The main skill flow
 - Use a booted Simulator UDID. List booted targets with:
 
 ```bash
-ios-use devices --simulator
+./ios-use devices --simulator
 ```
 
 ## Setup And Start
@@ -21,9 +21,9 @@ ios-use devices --simulator
 Simulator driver setup is unsigned and separate from real-device signing:
 
 ```bash
-ios-use config --simulator --udid <sim-udid>
-ios-use start <sim-udid>
-ios-use dom
+./ios-use config --simulator --udid <sim-udid>
+./ios-use start <sim-udid>
+./ios-use dom
 ```
 
 Important boundaries:
@@ -38,25 +38,25 @@ Important boundaries:
 Once started, driver-backed commands are the same as real device commands:
 
 ```bash
-ios-use dom --fresh
-ios-use waitFor --label "Settings" --timeout 5
-ios-use tap "Settings"
-ios-use screenshot
-ios-use stop
+./ios-use dom --fresh
+./ios-use waitFor --label "Settings" --timeout 5
+./ios-use tap "Settings"
+./ios-use screenshot
+./ios-use stop
 ```
 
 Host-side commands still accept explicit Simulator UDID:
 
 ```bash
-ios-use open "https://example.com" --udid <sim-udid>
-ios-use activateApp com.apple.Preferences --udid <sim-udid>
-ios-use terminateApp com.apple.Preferences --udid <sim-udid>
-ios-use oslog --udid <sim-udid> --process IOSUseDriver-Runner --timeout 5
+./ios-use open "https://example.com" --udid <sim-udid>
+./ios-use activateApp com.apple.Preferences --udid <sim-udid>
+./ios-use terminateApp com.apple.Preferences --udid <sim-udid>
+./ios-use oslog --udid <sim-udid> --process IOSUseDriver-Runner --timeout 5
 ```
 
 ## Troubleshooting
 
 - If `start` fails, inspect `~/.ios-use/logs/xctest-holder.log`.
-- If the driver appears stale, run `ios-use stop`, then rerun `ios-use config --simulator --udid <sim-udid>` and `ios-use start <sim-udid>`.
+- If the driver appears stale, run `./ios-use stop`, then rerun `./ios-use config --simulator --udid <sim-udid>` and `./ios-use start <sim-udid>`.
 - Simulator driver artifacts are Xcode-version-sensitive. Rebuild with `bash scripts/build_driver.sh --simulator-only` when the local Xcode or runtime changes.
 - Do not use `ddi-mount` for Simulator; DDI is a real-device requirement.

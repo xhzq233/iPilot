@@ -20,7 +20,7 @@ Repository: `https://github.com/xhzq233/altsign-cli`
 
 - macOS 12+ with Xcode Command Line Tools.
 - OpenSSL 3 installed, usually `brew install openssl`.
-- A USB device UDID from `ios-use devices`, `xcrun devicectl list devices`, Finder, or Xcode.
+- A USB device UDID from `./ios-use devices`, `xcrun devicectl list devices`, Finder, or Xcode.
 - First-time login needs `--apple-id` and `--password`. If Apple requires 2FA, the CLI prompts for the 6-digit code. When a valid session is cached, credentials can be omitted.
 
 ## Sign An IPA
@@ -57,7 +57,7 @@ The CLI packages the `.app` as a temporary IPA, resolves bundle IDs, creates or 
 ## Install After Signing
 
 ```bash
-ios-use install path/to/App_signed.ipa --udid 00000000-0000000000000000
+./ios-use install path/to/App_signed.ipa --udid 00000000-0000000000000000
 ```
 
 Before reinstalling the same bundle, terminate the app and avoid leaving an old `activateApp --log` capture running. If install hangs with no progress output, inspect and clear stale app log capture processes before retrying.

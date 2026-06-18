@@ -78,7 +78,7 @@ xcodebuild -scheme "$SCHEME" \
 Install to device:
 
 ```bash
-ios-use install "$APP_PATH" --udid "$UDID"
+./ios-use install "$APP_PATH" --udid "$UDID"
 ```
 
 ## Symbolication Gate

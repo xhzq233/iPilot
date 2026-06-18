@@ -30,15 +30,15 @@ curl -fsSL https://raw.githubusercontent.com/xhzq233/ios-use/main/scripts/instal
 After installation:
 
 ```bash
-ios-use devices
-ios-use config --udid <udid>
-ios-use start <udid>
+./ios-use devices
+./ios-use config --udid <udid>
+./ios-use start <udid>
 ```
 
-If `ios-use devices` reports `driver update required`, rerun:
+If `./ios-use devices` reports `driver update required`, rerun:
 
 ```bash
-ios-use config --udid <udid>
+./ios-use config --udid <udid>
 ```
 
 ## Install altsign-cli
@@ -62,9 +62,9 @@ Install this repository directory as one skill:
 ```text
 iPilot/
 ├── SKILL.md
-├── bin/
+├── ios-use
 ├── references/
 └── scripts/
 ```
 
-For automatic preview refresh, put this skill's `bin` directory before the real `ios-use` binary in `PATH`; read `wrapper.md`.
+Run iOS commands through `./ios-use`; read `wrapper.md`.

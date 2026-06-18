@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+skill_dir="$(cd "$(dirname "$0")" && pwd)"
+
+exec node "$skill_dir/scripts/ios-use-wrapper.mjs" "$@"

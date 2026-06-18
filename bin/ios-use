@@ -1,6 +1,0 @@
-#!/usr/bin/env bash
-set -euo pipefail
-
-bin_dir="$(cd "$(dirname "$0")" && pwd)"
-
-exec node "$bin_dir/../scripts/ios-use-wrapper.mjs" "$@"

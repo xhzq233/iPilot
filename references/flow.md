@@ -2,7 +2,7 @@
 
 ## 1. 目标
 
-- 这个文件只讲一件事：如何用 `ios-use flow` 编写可维护、可复用、可排查的自动化流程
+- 这个文件只讲一件事：如何用 `./ios-use flow` 编写可维护、可复用、可排查的自动化流程
 - 手动操作手机、单步排障、日志导出，优先看 `SKILL.md`
 - 写 flow 之前，先用 CLI 手动跑通每一步，再把它们组装成 YAML
 
@@ -75,13 +75,13 @@ steps:
 
 - `vars` 是 Flow 的输入
 - 顶层 `vars` 是默认值；CLI 外部变量可以覆盖同名默认值
-- CLI 外部变量写法：`ios-use flow <file> --targetLabel 蓝牙 --timeout 5`
-- `--verbose` 是 flow 命令自身选项，不进入 `vars`；Flow 不支持 `--udid`，目标就是最近一次 `ios-use start` 的设备
+- CLI 外部变量写法：`./ios-use flow <file> --targetLabel 蓝牙 --timeout 5`
+- `--verbose` 是 flow 命令自身选项，不进入 `vars`；Flow 不支持 `--udid`，目标就是最近一次 `./ios-use start` 的设备
 - 普通字符串字段支持模板替换，例如 `${vars.targetLabel}`
 - 整段 `${...}` 可以传对象或数组原值，不只限于字符串
 - 执行前会先检查整份 flow；能提前发现的错误会在任何 step 执行前失败
 - 含模板的字段会先检查外层结构，模板解析后再检查最终值
-- `print` / `save` / `dom.name` 不是合法 Flow 字段；需要人工查看或保存 DOM 时直接运行 `ios-use dom`
+- `print` / `save` / `dom.name` 不是合法 Flow 字段；需要人工查看或保存 DOM 时直接运行 `./ios-use dom`
 
 ```yaml
 vars:
@@ -96,13 +96,13 @@ steps:
 运行时覆盖默认值：
 
 ```bash
-ios-use flow settings.yaml --targetLabel Wi-Fi
+./ios-use flow settings.yaml --targetLabel Wi-Fi
 ```
 
 适合 proxy 这类需要从 CLI 注入运行时参数的 flow：
 
 ```bash
-ios-use flow flows/proxy_set_wifi_proxy.yaml --server 192.168.1.10 --port 9080
+./ios-use flow flows/proxy_set_wifi_proxy.yaml --server 192.168.1.10 --port 9080
 ```
 
 ### 5.2 `outputs`
@@ -244,8 +244,8 @@ steps:
 - 用于观察当前页面全量结构
 - 调试阶段建议多用
 - Flow 内需要消费 DOM 结果时使用 `outputs`
-- `dom.save` / `dom.print` / `dom.name` 不是合法 Flow 字段；需要落盘或人工查看时直接运行 CLI `ios-use dom`
-- Flow `dom.outputs` 的 DOM 结构和 `ios-use dom` 展示一致；`Scroll` / `Collection` / `Table` 可能显示 `vertical` / `horizontal`，但这些方向不能作为 `traits` 过滤条件
+- `dom.save` / `dom.print` / `dom.name` 不是合法 Flow 字段；需要落盘或人工查看时直接运行 CLI `./ios-use dom`
+- Flow `dom.outputs` 的 DOM 结构和 `./ios-use dom` 展示一致；`Scroll` / `Collection` / `Table` 可能显示 `vertical` / `horizontal`，但这些方向不能作为 `traits` 过滤条件
 
 ```yaml
 - action: dom
@@ -406,8 +406,8 @@ steps:
 2. 把稳定可复用的前置过程抽成 subflow
 3. 用 `vars` 传输入，用 `outputs` 传回结果
 4. 在关键节点保留 `dom` / `log` / `oslog`
-5. 先运行 `ios-use start` 选择目标设备；多设备或 Simulator 用 `ios-use start <udid>`；`flow --udid <udid>` 不再支持
-6. 运行 `ios-use flow your-flow.yaml`
+5. 先运行 `./ios-use start` 选择目标设备；多设备或 Simulator 用 `./ios-use start <udid>`；`flow --udid <udid>` 不再支持
+6. 运行 `./ios-use flow your-flow.yaml`
 7. 如果失败，回到 `SKILL.md` 的 CLI 工作流逐步单步复现
 
 ## 8. 常见错误
