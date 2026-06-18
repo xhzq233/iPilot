@@ -33,18 +33,22 @@ Install `ios-use`, then configure and start a real device:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/xhzq233/ios-use/main/scripts/install.sh | bash -s -- --version v1.2.5
-./ios-use devices
+./ios-use status
 ./ios-use config --udid <udid>
 ./ios-use start <udid>
 ```
 
-If `./ios-use devices` reports `driver update required`, run `./ios-use config --udid <udid>` again before retrying UI actions. Real devices must be connected by USB and trusted; iOS 17+ is expected for the current driver path.
+- `status` shows USB real devices, current driver state, app log capture, NSLog, Proxy, and config state. When `simctl` is available, it also lists booted Simulators.
+- If a device is not `configured`, or reports `driver update required`, run `./ios-use config --udid <udid>` before retrying UI actions.
+- First-time real-device config may need Apple ID and 2FA. If that interaction appears, ask the user to run the credentialed `config` command in their terminal.
+- Real devices must be connected by USB and trusted; iOS 17+ is expected for the current driver path.
 
 ## Device Targeting
 
 - `start` selects the current driver-backed device. Use `./ios-use stop` before switching devices.
 - `dom`, `tap`, `swipe`, `input`, `waitFor`, `screenshot`, `home`, `dismissAlert`, `flow`, and device-side proxy commands use the current driver lock; do not pass a separate `--udid`.
-- `devices`, `config`, `install`, `uninstall`, `apps`, `ddi-mount`, `open`, `activateApp`, `terminateApp`, and `oslog` can take `--udid`. If omitted, some commands use the current driver lock.
+- `status` does not accept `--udid`; it summarizes the current environment. `config`, `install`, `uninstall`, `apps`, `ddi-mount`, `open`, `activateApp`, `terminateApp`, and `oslog` can take `--udid`. If omitted, some commands use the current driver lock.
+- Real-device `status`, `config`, `install`, `uninstall`, `apps`, `ddi-mount`, `start`, `stop`, `open`, `activateApp`, `terminateApp`, and `oslog` do not require Xcode CLI. `status` lists booted Simulators only when `simctl` is available.
 
 ## DOM-First Workflow
 

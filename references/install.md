@@ -30,12 +30,12 @@ curl -fsSL https://raw.githubusercontent.com/xhzq233/ios-use/main/scripts/instal
 After installation:
 
 ```bash
-./ios-use devices
+./ios-use status
 ./ios-use config --udid <udid>
 ./ios-use start <udid>
 ```
 
-If `./ios-use devices` reports `driver update required`, rerun:
+If `./ios-use status` reports `driver update required`, rerun:
 
 ```bash
 ./ios-use config --udid <udid>
