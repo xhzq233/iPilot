@@ -32,11 +32,11 @@ If the real `ios-use` binary is not installed or cannot be found, the wrapper ex
 
 After successful `./ios-use start`, the wrapper starts the preview server in the background. After successful `./ios-use stop`, it stops the preview server.
 
-For mutating UI commands that exit successfully, it refreshes the preview snapshot:
+For `./ios-use dom` and mutating UI commands that exit successfully, it refreshes the preview snapshot:
 
 1. Run real `ios-use screenshot --name snapshot`.
 2. Copy `~/.ios-use/artifacts/snapshot.jpg` to `~/.ipilot/snapshot.jpg`.
-3. Reuse the command's `--dom` stdout when it contains DOM bounds; otherwise run real `ios-use dom`.
+3. Reuse `./ios-use dom` stdout or the command's `--dom` stdout when it contains DOM bounds; otherwise run real `ios-use dom`.
 4. Write the DOM to `~/.ipilot/snapshot.txt`.
 
 Automatic refresh is silent. If the original command fails, the wrapper returns that failure and does not run extra refresh commands.

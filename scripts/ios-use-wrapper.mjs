@@ -36,6 +36,10 @@ const MUTATING_COMMANDS = new Set([
   "terminateApp",
 ]);
 
+const OBSERVATION_REFRESH_COMMANDS = new Set([
+  "dom",
+]);
+
 const KNOWN_COMMANDS = new Set([
   "activateApp",
   "apps",
@@ -222,7 +226,8 @@ function passthrough(realBin, args, onSuccess) {
 }
 
 function runAndRefresh(realBin, args) {
-  if (!hasDomOption(args)) {
+  const canReuseStdout = commandName(args) === "dom" || hasDomOption(args);
+  if (!canReuseStdout) {
     passthrough(realBin, args, () => refreshPreview(realBin, "", false));
     return;
   }
@@ -275,7 +280,7 @@ if (!realBin) {
 
 const cmd = commandName(args);
 const shouldRefresh =
-  MUTATING_COMMANDS.has(cmd) &&
+  (MUTATING_COMMANDS.has(cmd) || OBSERVATION_REFRESH_COMMANDS.has(cmd)) &&
   process.env.IPILOT_DISABLE_AUTO_PREVIEW !== "1";
 
 if (cmd === "start" && process.env.IPILOT_DISABLE_AUTO_PREVIEW !== "1") {

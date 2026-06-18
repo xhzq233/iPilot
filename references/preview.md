@@ -24,7 +24,7 @@ Keep the terminal alive while the preview is in use. In normal agent workflows, 
 
 - Manual refresh: click the preview page refresh button or call the refresh command manually.
 - Automatic server lifecycle: `./ios-use start` starts the preview server; `./ios-use stop` stops it.
-- Automatic snapshot refresh: mutating `./ios-use` commands refresh screenshot and DOM after success.
+- Automatic snapshot refresh: `./ios-use dom` and mutating `./ios-use` commands refresh screenshot and DOM after success.
 
 ## Manual Snapshot Refresh
 
