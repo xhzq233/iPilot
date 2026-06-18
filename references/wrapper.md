@@ -7,10 +7,11 @@ Use the root iPilot wrapper for all `ios-use` calls made from this skill.
 Run:
 
 ```bash
+cd <path-to-this-skill-directory>
 ./ios-use <command>
 ```
 
-Do not call the host `ios-use` binary directly from agent workflows. The root wrapper is intentionally named `./ios-use` so agents can invoke it quickly without PATH setup.
+Enter the skill directory first, the directory containing `SKILL.md` and the executable `ios-use`. Do not call the host `ios-use` binary directly from agent workflows. The root wrapper is intentionally named `./ios-use` so agents can invoke it quickly without PATH setup once they are in the skill directory.
 
 ```bash
 ./ios-use tap "通用"

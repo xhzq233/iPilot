@@ -67,4 +67,4 @@ iPilot/
 └── scripts/
 ```
 
-Run iOS commands through `./ios-use`; read `wrapper.md`.
+Before running iOS commands, `cd` into this skill directory and use `./ios-use`; read `wrapper.md`.

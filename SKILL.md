@@ -10,10 +10,11 @@ Use iPilot for iOS device automation and verification from an agent or IDE. Pref
 Always run iOS device commands through the root wrapper:
 
 ```bash
+cd <path-to-this-skill-directory>
 ./ios-use <command>
 ```
 
-Do not call the host `ios-use` binary directly. The wrapper transparently forwards command output, starts the preview server after successful `./ios-use start`, stops it after successful `./ios-use stop`, and refreshes preview snapshots after successful mutating commands.
+First enter this skill directory, the directory containing `SKILL.md` and the executable `ios-use`. All `./ios-use` examples below assume that working directory. Do not call the host `ios-use` binary directly. The wrapper transparently forwards command output, starts the preview server after successful `./ios-use start`, stops it after successful `./ios-use stop`, and refreshes preview snapshots after successful mutating commands.
 
 ## References
 
