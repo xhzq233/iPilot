@@ -6,6 +6,16 @@ Use `altsign-cli` to sign iOS apps for physical-device installation. It accepts 
 
 Pinned version: `v0.1.3`
 
+Prefer the pinned release binary:
+
+```bash
+curl -L https://github.com/xhzq233/altsign-cli/releases/download/v0.1.3/altsign-cli -o altsign-cli
+chmod +x altsign-cli
+./altsign-cli --help
+```
+
+If the binary does not run on the local macOS environment, build from source:
+
 ```bash
 brew install openssl
 curl -L https://github.com/xhzq233/altsign-cli/archive/refs/tags/v0.1.3.tar.gz -o altsign-cli-v0.1.3.tar.gz
@@ -15,6 +25,7 @@ cd altsign-cli-0.1.3
 ```
 
 Repository: `https://github.com/xhzq233/altsign-cli`
+Release binary: `https://github.com/xhzq233/altsign-cli/releases/download/v0.1.3/altsign-cli`
 
 ## Preconditions
 
