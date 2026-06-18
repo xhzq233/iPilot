@@ -10,7 +10,7 @@ From the loaded skill folder:
 node "$SKILL_DIR/scripts/device-preview.mjs" serve
 ```
 
-If `$SKILL_DIR` is not provided by the host IDE, replace it with the absolute path to `skills/ipilot`.
+If `$SKILL_DIR` is not provided by the IDE, replace it with the absolute path to this skill directory.
 
 The server prints:
 
@@ -22,17 +22,16 @@ Keep the terminal alive while the preview is in use.
 
 ## How It Updates
 
-- Manual refresh: click the preview page refresh button or call the hook command manually.
-- Codex plugin mode: the repository root `hooks.json` runs the hook after Bash tool usage.
-- Other IDEs: read `hooks.md`; the hook is optional and host-specific.
+- Manual refresh: click the preview page refresh button or call the refresh command manually.
+- Automatic refresh: read `wrapper.md` and put the skill `bin` directory before the real `ios-use` in `PATH`.
 
 ## Manual Snapshot Refresh
 
 ```bash
-node "$SKILL_DIR/scripts/device-preview.mjs" hook
+node "$SKILL_DIR/scripts/device-preview.mjs" refresh
 ```
 
-The hook captures `ios-use screenshot --name snapshot` and `ios-use dom`, then writes the preview state under `~/.ipilot/`.
+The refresh command captures `ios-use screenshot --name snapshot` and `ios-use dom`, then writes the preview state under `~/.ipilot/`.
 
 ## Prerequisites
 

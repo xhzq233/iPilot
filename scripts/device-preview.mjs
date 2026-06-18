@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-// device-preview.mjs - iPilot Skill/Plugin helper
-// 角色 1: PostToolUse hook handler (stdin → match ios-use → screenshot+dom)
-// 角色 2: Preview HTTP server (fs.watch → SSE → 截图+DOM框)
+// device-preview.mjs - iPilot preview helper
+// 角色 1: Preview HTTP server (fs.watch -> SSE -> screenshot+DOM overlay)
+// 角色 2: Manual snapshot refresh
 
 import { createServer } from "node:http";
 import { execSync } from "node:child_process";
@@ -15,24 +15,7 @@ const DOM_PATH = join(IPILOT_DIR, "snapshot.txt");
 const PORT = 3200;
 const PREVIEW_URL = `http://localhost:${PORT}`;
 
-// ios-use 操作命令：执行后需要自动截图+DOM
-const ACTION_RE = /\bios-use\s+(tap|swipe|input|longpress|home|activateApp|dismissAlert|openUrl|dom|screenshot|launch|terminate)\b/;
-
-// ────────────────────────────────────────
-// 角色 1: Hook Handler
-// ────────────────────────────────────────
-
-async function handleHook() {
-  const chunks = [];
-  for await (const chunk of process.stdin) chunks.push(chunk);
-  const raw = Buffer.concat(chunks).toString();
-
-  let payload;
-  try { payload = JSON.parse(raw); } catch { process.exit(0); }
-
-  const cmd = payload?.tool_input?.command ?? payload?.tool_input?.cmd ?? "";
-  if (!ACTION_RE.test(cmd)) process.exit(0);
-
+function refreshSnapshot() {
   mkdirSync(IPILOT_DIR, { recursive: true });
 
   try {
@@ -121,15 +104,7 @@ function startServer() {
 
     // 手动刷新
     if (url.pathname === "/refresh" && req.method === "POST") {
-      try {
-        execSync(`ios-use screenshot --name snapshot`, { stdio: "ignore", timeout: 15000 });
-        const srcScreenshot = join(homedir(), ".ios-use", "artifacts", "snapshot.jpg");
-        if (existsSync(srcScreenshot)) writeFileSync(SCREENSHOT_PATH, readFileSync(srcScreenshot));
-      } catch {}
-      try {
-        const domOutput = execSync(`ios-use dom`, { timeout: 15000, encoding: "utf-8" });
-        writeFileSync(DOM_PATH, domOutput);
-      } catch {}
+      refreshSnapshot();
       res.writeHead(200);
       res.end("ok");
       return;
@@ -500,11 +475,11 @@ new ResizeObserver(() => loadDom()).observe(deviceContainer);
 // ────────────────────────────────────────
 
 const mode = process.argv[2];
-if (mode === "hook") {
-  handleHook();
-} else if (mode === "serve") {
+if (mode === "serve") {
   startServer();
+} else if (mode === "refresh") {
+  refreshSnapshot();
 } else {
-  console.error("Usage: device-preview.mjs <hook|serve>");
+  console.error("Usage: device-preview.mjs <serve|refresh>");
   process.exit(1);
 }

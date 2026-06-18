@@ -12,7 +12,7 @@ Use iPilot for iOS device automation and verification from an agent or IDE. Pref
 - Installation, pinned versions, and download URLs: read `references/install.md`.
 - IPA or `.app` signing with `altsign-cli`: read `references/altsign.md`.
 - Live screenshot + DOM preview server: read `references/preview.md`.
-- Codex/plugin hook behavior and portable IDE guidance: read `references/hooks.md`.
+- Portable `ios-use` wrapper for automatic preview refresh: read `references/wrapper.md`.
 - YAML Flow authoring: read `references/flow.md`.
 - HTTP/HTTPS proxy capture: read `references/proxy.md`.
 - Simulator setup and troubleshooting: read `references/simulator.md`.
@@ -24,7 +24,7 @@ Use iPilot for iOS device automation and verification from an agent or IDE. Pref
 Install `ios-use`, then configure and start a real device:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/xhzq233/ios-use/main/scripts/install.sh | bash -s -- --version v1.2.4
+curl -fsSL https://raw.githubusercontent.com/xhzq233/ios-use/main/scripts/install.sh | bash -s -- --version v1.2.5
 ios-use devices
 ios-use config --udid <udid>
 ios-use start <udid>

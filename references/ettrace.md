@@ -86,7 +86,7 @@ ios-use install "$APP_PATH" --udid "$UDID"
 Real device builds strip symbols. dSYMs are mandatory.
 
 ```bash
-SKILL_DIR="<absolute path to skills/ipilot>"
+SKILL_DIR="<absolute path to iPilot skill>"
 APP="<path-to-built-iphoneos-App.app>"
 DSYMS="$RUN_DIR/dsyms"
 

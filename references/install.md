@@ -4,11 +4,11 @@ Use this reference when installing iPilot dependencies in a fresh IDE or agent e
 
 ## Current Tool Pins
 
-These versions were checked from upstream tags on 2026-06-16:
+These versions were checked from upstream tags on 2026-06-18:
 
 | Tool | Version | Repository | Download / install URL |
 | --- | --- | --- | --- |
-| `ios-use` | `v1.2.4` | `https://github.com/xhzq233/ios-use` | Installer: `https://raw.githubusercontent.com/xhzq233/ios-use/main/scripts/install.sh`; tag: `https://github.com/xhzq233/ios-use/releases/tag/v1.2.4`; source: `https://github.com/xhzq233/ios-use/archive/refs/tags/v1.2.4.tar.gz` |
+| `ios-use` | `v1.2.5` | `https://github.com/xhzq233/ios-use` | Installer: `https://raw.githubusercontent.com/xhzq233/ios-use/main/scripts/install.sh`; tag: `https://github.com/xhzq233/ios-use/releases/tag/v1.2.5`; source: `https://github.com/xhzq233/ios-use/archive/refs/tags/v1.2.5.tar.gz` |
 | `altsign-cli` | `v0.1.3` | `https://github.com/xhzq233/altsign-cli` | Tag: `https://github.com/xhzq233/altsign-cli/releases/tag/v0.1.3`; source: `https://github.com/xhzq233/altsign-cli/archive/refs/tags/v0.1.3.tar.gz` |
 
 Use pinned installs for reproducible agent behavior. Use upstream `main` only when deliberately testing newer behavior.
@@ -18,13 +18,13 @@ Use pinned installs for reproducible agent behavior. Use upstream `main` only wh
 Apple Silicon macOS:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/xhzq233/ios-use/main/scripts/install.sh | bash -s -- --version v1.2.4
+curl -fsSL https://raw.githubusercontent.com/xhzq233/ios-use/main/scripts/install.sh | bash -s -- --version v1.2.5
 ```
 
 Intel macOS or local rebuild:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/xhzq233/ios-use/main/scripts/install.sh | bash -s -- --version v1.2.4 --build-from-source
+curl -fsSL https://raw.githubusercontent.com/xhzq233/ios-use/main/scripts/install.sh | bash -s -- --version v1.2.5 --build-from-source
 ```
 
 After installation:
@@ -55,15 +55,16 @@ cd altsign-cli-0.1.3
 
 The build produces `./altsign-cli`.
 
-## Portable Skill Layout
+## Skill Layout
 
-For IDEs that understand skills but not Codex plugins, install only this folder:
+Install this repository directory as one skill:
 
 ```text
-skills/ipilot/
+iPilot/
 ├── SKILL.md
+├── bin/
 ├── references/
 └── scripts/
 ```
 
-The optional Codex plugin files at repository root are not required for basic skill usage. The live preview hook is host-specific; read `hooks.md`.
+For automatic preview refresh, put this skill's `bin` directory before the real `ios-use` binary in `PATH`; read `wrapper.md`.
