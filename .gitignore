@@ -2,3 +2,5 @@
 vphone-cli
 .idea
 altsign-cli
+example/build/
+example/*.ipa
