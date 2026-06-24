@@ -30,6 +30,8 @@ To make Codex open the side Preview, run the wrapper's foreground preview comman
 
 This command prints the same serve-sim-style URL and intentionally keeps running, which gives Codex a live server session to attach to. Stop it with Ctrl-C.
 
+Codex should not rely on terminal URL output being auto-detected. After the command prints its address lines, open the exact `Local` URL, usually `http://localhost:3200/`, in the Codex in-app browser and make that browser visible.
+
 ## How It Updates
 
 - Manual refresh: click the preview page refresh button or call the refresh command manually.

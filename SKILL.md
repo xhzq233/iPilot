@@ -14,7 +14,7 @@ cd <path-to-this-skill-directory>
 ./ios-use <command>
 ```
 
-First enter this skill directory, the directory containing `SKILL.md` and the executable `ios-use`. All `./ios-use` examples below assume that working directory. Do not call the host `ios-use` binary directly. The wrapper transparently forwards command output and refreshes preview snapshots after successful mutating commands. To open the Codex side Preview, run `./ios-use preview` in a long-running terminal after `./ios-use start`; it prints a serve-sim-style local URL and keeps the preview process alive.
+First enter this skill directory, the directory containing `SKILL.md` and the executable `ios-use`. All `./ios-use` examples below assume that working directory. Do not call the host `ios-use` binary directly. The wrapper transparently forwards command output and refreshes preview snapshots after successful mutating commands. To open the Codex side Preview, run `./ios-use preview` in a long-running terminal after `./ios-use start`; it prints a serve-sim-style local URL and keeps the preview process alive. Then open the exact `Local` URL printed by `./ios-use preview` in the Codex in-app browser and make the browser visible to the user.
 
 ## References
 
