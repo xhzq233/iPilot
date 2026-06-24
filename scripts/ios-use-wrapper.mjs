@@ -9,7 +9,7 @@ import {
   realpathSync,
   writeFileSync,
 } from "node:fs";
-import { homedir } from "node:os";
+import { homedir, networkInterfaces } from "node:os";
 import { delimiter, dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -20,6 +20,8 @@ const IPILOT_DIR = join(homedir(), ".ipilot");
 const DOM_PATH = join(IPILOT_DIR, "snapshot.txt");
 const SCREENSHOT_PATH = join(IPILOT_DIR, "snapshot.jpg");
 const DEVICE_PREVIEW_SCRIPT = join(SKILL_DIR, "scripts", "device-preview.mjs");
+const PREVIEW_PORT = 3200;
+const PREVIEW_URL = `http://localhost:${PREVIEW_PORT}`;
 
 const MUTATING_COMMANDS = new Set([
   "activateApp",
@@ -190,6 +192,26 @@ function startPreviewServer() {
   }
 }
 
+function printPreviewAddress() {
+  console.log("");
+  console.log(`  - Local:   ${PREVIEW_URL}`);
+  const lanAddress = firstLanAddress();
+  if (lanAddress) {
+    console.log(`  - Network: use --host 0.0.0.0 to expose on http://${lanAddress}:${PREVIEW_PORT}`);
+  }
+  console.log("");
+}
+
+function firstLanAddress() {
+  for (const addrs of Object.values(networkInterfaces())) {
+    for (const addr of addrs || []) {
+      if (addr.family !== "IPv4" || addr.internal) continue;
+      return addr.address;
+    }
+  }
+  return "";
+}
+
 function stopPreviewServer() {
   try {
     spawnSync(process.execPath, [DEVICE_PREVIEW_SCRIPT, "stop-server"], {
@@ -286,6 +308,7 @@ const shouldRefresh =
 if (cmd === "start" && process.env.IPILOT_DISABLE_AUTO_PREVIEW !== "1") {
   passthrough(realBin, args, () => {
     startPreviewServer();
+    printPreviewAddress();
     refreshPreview(realBin, "", false);
   });
 } else if (cmd === "stop") {

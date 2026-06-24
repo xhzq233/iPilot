@@ -7,7 +7,7 @@ import { createServer } from "node:http";
 import { execSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, unlinkSync, watch, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { homedir } from "node:os";
+import { homedir, networkInterfaces } from "node:os";
 
 const IPILOT_DIR = join(homedir(), ".ipilot");
 const SCREENSHOT_PATH = join(IPILOT_DIR, "snapshot.jpg");
@@ -15,6 +15,32 @@ const DOM_PATH = join(IPILOT_DIR, "snapshot.txt");
 const PID_PATH = join(IPILOT_DIR, "preview.pid");
 const PORT = 3200;
 const PREVIEW_URL = `http://localhost:${PORT}`;
+
+function previewAddressLines() {
+  const lines = ["", `  - Local:   ${PREVIEW_URL}`];
+  const lanAddress = firstLanAddress();
+  if (lanAddress) {
+    lines.push(`  - Network: use --host 0.0.0.0 to expose on http://${lanAddress}:${PORT}`);
+  }
+  lines.push("");
+  return lines;
+}
+
+function printPreviewAddress() {
+  for (const line of previewAddressLines()) {
+    console.log(line);
+  }
+}
+
+function firstLanAddress() {
+  for (const addrs of Object.values(networkInterfaces())) {
+    for (const addr of addrs || []) {
+      if (addr.family !== "IPv4" || addr.internal) continue;
+      return addr.address;
+    }
+  }
+  return "";
+}
 
 function refreshSnapshot() {
   mkdirSync(IPILOT_DIR, { recursive: true });
@@ -82,9 +108,7 @@ function startServer(options = {}) {
   const existingPid = readPreviewPid();
   if (existingPid && existingPid !== process.pid && isAlive(existingPid)) {
     if (!quiet) {
-      console.log("");
-      console.log(`  - Local:   ${PREVIEW_URL}`);
-      console.log("");
+      printPreviewAddress();
     }
     return;
   }
@@ -195,9 +219,7 @@ function startServer(options = {}) {
   server.listen(PORT, () => {
     writeFileSync(PID_PATH, `${process.pid}\n`);
     if (!quiet) {
-      console.log("");
-      console.log(`  - Local:   ${PREVIEW_URL}`);
-      console.log("");
+      printPreviewAddress();
     }
   });
 }

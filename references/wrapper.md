@@ -31,7 +31,14 @@ The wrapper forwards command results from the real `ios-use`. It does not pass w
 
 If the real `ios-use` binary is not installed or cannot be found, the wrapper exits with code `127` and prints an install/configuration error.
 
-After successful `./ios-use start`, the wrapper starts the preview server in the background. After successful `./ios-use stop`, it stops the preview server.
+After successful `./ios-use start`, the wrapper starts the preview server in the background and prints a serve-sim-style preview URL in the current terminal:
+
+```text
+  - Local:   http://localhost:3200
+  - Network: use --host 0.0.0.0 to expose on http://<lan-ip>:3200
+```
+
+This output is intentional so Codex can open the side Preview. After successful `./ios-use stop`, the wrapper stops the preview server.
 
 For `./ios-use dom` and mutating UI commands that exit successfully, it refreshes the preview snapshot:
 
