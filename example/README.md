@@ -35,7 +35,13 @@ Open the app and refresh preview:
 ./ios-use dom
 ```
 
-The preview server starts when `./ios-use start` succeeds. Open:
+The preview server starts when `./ios-use start` succeeds. To open Codex side Preview, keep a foreground preview session running:
+
+```bash
+./ios-use preview
+```
+
+Open:
 
 ```text
 http://localhost:3200
@@ -73,7 +79,7 @@ Add https://github.com/xhzq233/iPilot as a skill.
 What can iPilot do?
 Install the iPilot dependencies and prepare my connected iPhone.
 Build and run the example app in the iPilot repository.
-Show me the DOM and preview.
+Open the iPilot preview so I can take a screenshot.
 ```
 
 ## Notes

@@ -21,7 +21,8 @@ const DOM_PATH = join(IPILOT_DIR, "snapshot.txt");
 const SCREENSHOT_PATH = join(IPILOT_DIR, "snapshot.jpg");
 const DEVICE_PREVIEW_SCRIPT = join(SKILL_DIR, "scripts", "device-preview.mjs");
 const PREVIEW_PORT = 3200;
-const PREVIEW_URL = `http://localhost:${PREVIEW_PORT}`;
+const LOCALHOST_PREVIEW_URL = `http://localhost:${PREVIEW_PORT}/`;
+const LOOPBACK_PREVIEW_URL = `http://127.0.0.1:${PREVIEW_PORT}/`;
 
 const MUTATING_COMMANDS = new Set([
   "activateApp",
@@ -61,6 +62,7 @@ const KNOWN_COMMANDS = new Set([
   "open",
   "openUrl",
   "oslog",
+  "preview",
   "proxy",
   "screenshot",
   "start",
@@ -194,10 +196,11 @@ function startPreviewServer() {
 
 function printPreviewAddress() {
   console.log("");
-  console.log(`  - Local:   ${PREVIEW_URL}`);
+  console.log(`  - Local:   ${LOCALHOST_PREVIEW_URL}`);
+  console.log(`  - Loopback: ${LOOPBACK_PREVIEW_URL}`);
   const lanAddress = firstLanAddress();
   if (lanAddress) {
-    console.log(`  - Network: use --host 0.0.0.0 to expose on http://${lanAddress}:${PREVIEW_PORT}`);
+    console.log(`  - Network: use --host 0.0.0.0 to expose on http://${lanAddress}:${PREVIEW_PORT}/`);
   }
   console.log("");
 }
@@ -222,6 +225,41 @@ function stopPreviewServer() {
   } catch {
     // Preview server shutdown must not change the wrapped command result.
   }
+}
+
+function runPreviewServer() {
+  if (process.env.IPILOT_DISABLE_AUTO_PREVIEW === "1") {
+    console.error("iPilot preview is disabled because IPILOT_DISABLE_AUTO_PREVIEW=1.");
+    process.exit(1);
+  }
+
+  try {
+    spawnSync(process.execPath, [DEVICE_PREVIEW_SCRIPT, "refresh"], {
+      env: childEnv(),
+      stdio: "ignore",
+      timeout: 20000,
+    });
+  } catch {
+    // A stale or missing device should not prevent the preview server from opening.
+  }
+
+  const child = spawn(process.execPath, [DEVICE_PREVIEW_SCRIPT, "serve"], {
+    env: childEnv(),
+    stdio: "inherit",
+  });
+
+  child.on("exit", (code, signal) => {
+    if (signal) {
+      process.kill(process.pid, signal);
+      return;
+    }
+    process.exit(code ?? 1);
+  });
+
+  child.on("error", (error) => {
+    console.error(`iPilot preview failed to start: ${error.message}`);
+    process.exit(1);
+  });
 }
 
 function passthrough(realBin, args, onSuccess) {
@@ -311,6 +349,8 @@ if (cmd === "start" && process.env.IPILOT_DISABLE_AUTO_PREVIEW !== "1") {
     printPreviewAddress();
     refreshPreview(realBin, "", false);
   });
+} else if (cmd === "preview") {
+  runPreviewServer();
 } else if (cmd === "stop") {
   passthrough(realBin, args, stopPreviewServer);
 } else if (!shouldRefresh) {

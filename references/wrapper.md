@@ -34,11 +34,18 @@ If the real `ios-use` binary is not installed or cannot be found, the wrapper ex
 After successful `./ios-use start`, the wrapper starts the preview server in the background and prints a serve-sim-style preview URL in the current terminal:
 
 ```text
-  - Local:   http://localhost:3200
-  - Network: use --host 0.0.0.0 to expose on http://<lan-ip>:3200
+  - Local:   http://localhost:3200/
+  - Loopback: http://127.0.0.1:3200/
+  - Network: use --host 0.0.0.0 to expose on http://<lan-ip>:3200/
 ```
 
-This output is intentional so Codex can open the side Preview. After successful `./ios-use stop`, the wrapper stops the preview server.
+This background server keeps snapshots fresh, but Codex may only open the side Preview from a live foreground server session. For that, run:
+
+```bash
+./ios-use preview
+```
+
+`./ios-use preview` refreshes the current snapshot, prints the same serve-sim-style URL, and stays running. After successful `./ios-use stop`, the wrapper stops the background preview server.
 
 For `./ios-use dom` and mutating UI commands that exit successfully, it refreshes the preview snapshot:
 

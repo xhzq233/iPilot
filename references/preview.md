@@ -15,11 +15,20 @@ If `$SKILL_DIR` is not provided by the IDE, replace it with the absolute path to
 The server prints:
 
 ```text
-  - Local:   http://localhost:3200
-  - Network: use --host 0.0.0.0 to expose on http://<lan-ip>:3200
+  - Local:   http://localhost:3200/
+  - Loopback: http://127.0.0.1:3200/
+  - Network: use --host 0.0.0.0 to expose on http://<lan-ip>:3200/
 ```
 
-Keep the terminal alive while the preview is in use. In normal agent workflows, `./ios-use start` starts this server automatically in the background, prints the same local preview URL in the current terminal so Codex can open the side Preview, and `./ios-use stop` exits it.
+Keep the terminal alive while the preview is in use. In normal agent workflows, `./ios-use start` starts this server automatically in the background for snapshot refreshes, and `./ios-use stop` exits it.
+
+To make Codex open the side Preview, run the wrapper's foreground preview command in a long-running terminal:
+
+```bash
+./ios-use preview
+```
+
+This command prints the same serve-sim-style URL and intentionally keeps running, which gives Codex a live server session to attach to.
 
 ## How It Updates
 

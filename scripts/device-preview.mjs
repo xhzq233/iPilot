@@ -14,13 +14,18 @@ const SCREENSHOT_PATH = join(IPILOT_DIR, "snapshot.jpg");
 const DOM_PATH = join(IPILOT_DIR, "snapshot.txt");
 const PID_PATH = join(IPILOT_DIR, "preview.pid");
 const PORT = 3200;
-const PREVIEW_URL = `http://localhost:${PORT}`;
+const LOCALHOST_PREVIEW_URL = `http://localhost:${PORT}/`;
+const LOOPBACK_PREVIEW_URL = `http://127.0.0.1:${PORT}/`;
 
 function previewAddressLines() {
-  const lines = ["", `  - Local:   ${PREVIEW_URL}`];
+  const lines = [
+    "",
+    `  - Local:   ${LOCALHOST_PREVIEW_URL}`,
+    `  - Loopback: ${LOOPBACK_PREVIEW_URL}`,
+  ];
   const lanAddress = firstLanAddress();
   if (lanAddress) {
-    lines.push(`  - Network: use --host 0.0.0.0 to expose on http://${lanAddress}:${PORT}`);
+    lines.push(`  - Network: use --host 0.0.0.0 to expose on http://${lanAddress}:${PORT}/`);
   }
   lines.push("");
   return lines;
