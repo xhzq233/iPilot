@@ -5,14 +5,13 @@
 
 import { createServer } from "node:http";
 import { execSync } from "node:child_process";
-import { existsSync, mkdirSync, readFileSync, unlinkSync, watch, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, watch, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { homedir, networkInterfaces } from "node:os";
 
 const IPILOT_DIR = join(homedir(), ".ipilot");
 const SCREENSHOT_PATH = join(IPILOT_DIR, "snapshot.jpg");
 const DOM_PATH = join(IPILOT_DIR, "snapshot.txt");
-const PID_PATH = join(IPILOT_DIR, "preview.pid");
 const PORT = 3200;
 const LOCALHOST_PREVIEW_URL = `http://localhost:${PORT}/`;
 const LOOPBACK_PREVIEW_URL = `http://127.0.0.1:${PORT}/`;
@@ -67,41 +66,6 @@ function refreshSnapshot() {
   } catch { /* dom 失败不阻塞 */ }
 }
 
-function readPreviewPid() {
-  try {
-    const pid = Number.parseInt(readFileSync(PID_PATH, "utf-8").trim(), 10);
-    return Number.isFinite(pid) && pid > 0 ? pid : null;
-  } catch {
-    return null;
-  }
-}
-
-function isAlive(pid) {
-  try {
-    process.kill(pid, 0);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-function removePidFileIfOwned() {
-  const pid = readPreviewPid();
-  if (pid !== process.pid) return;
-  try { unlinkSync(PID_PATH); } catch {}
-}
-
-function stopServer() {
-  const pid = readPreviewPid();
-  if (!pid) return;
-
-  try {
-    process.kill(pid, "SIGTERM");
-  } catch {}
-
-  try { unlinkSync(PID_PATH); } catch {}
-}
-
 // ────────────────────────────────────────
 // 角色 2: Preview Server
 // ────────────────────────────────────────
@@ -109,17 +73,6 @@ function stopServer() {
 function startServer(options = {}) {
   const quiet = options.quiet === true;
   mkdirSync(IPILOT_DIR, { recursive: true });
-
-  const existingPid = readPreviewPid();
-  if (existingPid && existingPid !== process.pid && isAlive(existingPid)) {
-    if (!quiet) {
-      printPreviewAddress();
-    }
-    return;
-  }
-  if (existingPid && !isAlive(existingPid)) {
-    try { unlinkSync(PID_PATH); } catch {}
-  }
 
   const clients = new Set();
   let version = 0;
@@ -212,17 +165,14 @@ function startServer(options = {}) {
   });
 
   const shutdown = () => {
-    removePidFileIfOwned();
     server.close(() => process.exit(0));
     setTimeout(() => process.exit(0), 500).unref();
   };
 
   process.on("SIGTERM", shutdown);
   process.on("SIGINT", shutdown);
-  process.on("exit", removePidFileIfOwned);
 
   server.listen(PORT, () => {
-    writeFileSync(PID_PATH, `${process.pid}\n`);
     if (!quiet) {
       printPreviewAddress();
     }
@@ -580,9 +530,7 @@ if (mode === "serve") {
   startServer({ quiet: process.argv.includes("--quiet") });
 } else if (mode === "refresh") {
   refreshSnapshot();
-} else if (mode === "stop-server") {
-  stopServer();
 } else {
-  console.error("Usage: device-preview.mjs <serve|refresh|stop-server>");
+  console.error("Usage: device-preview.mjs <serve|refresh>");
   process.exit(1);
 }

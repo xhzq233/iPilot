@@ -31,7 +31,13 @@ The wrapper forwards command results from the real `ios-use`. It does not pass w
 
 If the real `ios-use` binary is not installed or cannot be found, the wrapper exits with code `127` and prints an install/configuration error.
 
-After successful `./ios-use start`, the wrapper starts the preview server in the background and prints a serve-sim-style preview URL in the current terminal:
+`./ios-use start` only starts the iOS driver. It does not start Preview in the background. To open Preview, run:
+
+```bash
+./ios-use preview
+```
+
+The foreground preview command prints a serve-sim-style URL:
 
 ```text
   - Local:   http://localhost:3200/
@@ -39,13 +45,7 @@ After successful `./ios-use start`, the wrapper starts the preview server in the
   - Network: use --host 0.0.0.0 to expose on http://<lan-ip>:3200/
 ```
 
-This background server keeps snapshots fresh, but Codex may only open the side Preview from a live foreground server session. For that, run:
-
-```bash
-./ios-use preview
-```
-
-`./ios-use preview` refreshes the current snapshot, prints the same serve-sim-style URL, and stays running. After successful `./ios-use stop`, the wrapper stops the background preview server.
+`./ios-use preview` refreshes the current snapshot and stays running. Stop it with Ctrl-C.
 
 For `./ios-use dom` and mutating UI commands that exit successfully, it refreshes the preview snapshot:
 

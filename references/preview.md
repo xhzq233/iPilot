@@ -20,7 +20,7 @@ The server prints:
   - Network: use --host 0.0.0.0 to expose on http://<lan-ip>:3200/
 ```
 
-Keep the terminal alive while the preview is in use. In normal agent workflows, `./ios-use start` starts this server automatically in the background for snapshot refreshes, and `./ios-use stop` exits it.
+Keep the terminal alive while the preview is in use. `./ios-use start` only starts the iOS driver; it does not start Preview in the background.
 
 To make Codex open the side Preview, run the wrapper's foreground preview command in a long-running terminal:
 
@@ -28,12 +28,12 @@ To make Codex open the side Preview, run the wrapper's foreground preview comman
 ./ios-use preview
 ```
 
-This command prints the same serve-sim-style URL and intentionally keeps running, which gives Codex a live server session to attach to.
+This command prints the same serve-sim-style URL and intentionally keeps running, which gives Codex a live server session to attach to. Stop it with Ctrl-C.
 
 ## How It Updates
 
 - Manual refresh: click the preview page refresh button or call the refresh command manually.
-- Automatic server lifecycle: `./ios-use start` starts the preview server; `./ios-use stop` stops it.
+- Foreground lifecycle: `./ios-use preview` starts the preview server; Ctrl-C stops it.
 - Automatic snapshot refresh: `./ios-use dom` and mutating `./ios-use` commands refresh screenshot and DOM after success.
 
 ## Manual Snapshot Refresh

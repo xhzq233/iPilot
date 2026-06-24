@@ -35,7 +35,7 @@ Open the app and refresh preview:
 ./ios-use dom
 ```
 
-The preview server starts when `./ios-use start` succeeds. To open Codex side Preview, keep a foreground preview session running:
+`./ios-use start` only starts the iOS driver. To open Codex side Preview, keep a foreground preview session running:
 
 ```bash
 ./ios-use preview

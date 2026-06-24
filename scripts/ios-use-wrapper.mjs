@@ -9,7 +9,7 @@ import {
   realpathSync,
   writeFileSync,
 } from "node:fs";
-import { homedir, networkInterfaces } from "node:os";
+import { homedir } from "node:os";
 import { delimiter, dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -20,9 +20,6 @@ const IPILOT_DIR = join(homedir(), ".ipilot");
 const DOM_PATH = join(IPILOT_DIR, "snapshot.txt");
 const SCREENSHOT_PATH = join(IPILOT_DIR, "snapshot.jpg");
 const DEVICE_PREVIEW_SCRIPT = join(SKILL_DIR, "scripts", "device-preview.mjs");
-const PREVIEW_PORT = 3200;
-const LOCALHOST_PREVIEW_URL = `http://localhost:${PREVIEW_PORT}/`;
-const LOOPBACK_PREVIEW_URL = `http://127.0.0.1:${PREVIEW_PORT}/`;
 
 const MUTATING_COMMANDS = new Set([
   "activateApp",
@@ -179,54 +176,6 @@ function refreshPreview(realBin, stdoutText, canReuseDom) {
   }
 }
 
-function startPreviewServer() {
-  if (process.env.IPILOT_DISABLE_AUTO_PREVIEW === "1") return;
-
-  try {
-    const child = spawn(process.execPath, [DEVICE_PREVIEW_SCRIPT, "serve", "--quiet"], {
-      detached: true,
-      env: childEnv(),
-      stdio: "ignore",
-    });
-    child.unref();
-  } catch {
-    // Preview server startup must not change the wrapped command result.
-  }
-}
-
-function printPreviewAddress() {
-  console.log("");
-  console.log(`  - Local:   ${LOCALHOST_PREVIEW_URL}`);
-  console.log(`  - Loopback: ${LOOPBACK_PREVIEW_URL}`);
-  const lanAddress = firstLanAddress();
-  if (lanAddress) {
-    console.log(`  - Network: use --host 0.0.0.0 to expose on http://${lanAddress}:${PREVIEW_PORT}/`);
-  }
-  console.log("");
-}
-
-function firstLanAddress() {
-  for (const addrs of Object.values(networkInterfaces())) {
-    for (const addr of addrs || []) {
-      if (addr.family !== "IPv4" || addr.internal) continue;
-      return addr.address;
-    }
-  }
-  return "";
-}
-
-function stopPreviewServer() {
-  try {
-    spawnSync(process.execPath, [DEVICE_PREVIEW_SCRIPT, "stop-server"], {
-      env: childEnv(),
-      stdio: "ignore",
-      timeout: 2000,
-    });
-  } catch {
-    // Preview server shutdown must not change the wrapped command result.
-  }
-}
-
 function runPreviewServer() {
   if (process.env.IPILOT_DISABLE_AUTO_PREVIEW === "1") {
     console.error("iPilot preview is disabled because IPILOT_DISABLE_AUTO_PREVIEW=1.");
@@ -343,16 +292,8 @@ const shouldRefresh =
   (MUTATING_COMMANDS.has(cmd) || OBSERVATION_REFRESH_COMMANDS.has(cmd)) &&
   process.env.IPILOT_DISABLE_AUTO_PREVIEW !== "1";
 
-if (cmd === "start" && process.env.IPILOT_DISABLE_AUTO_PREVIEW !== "1") {
-  passthrough(realBin, args, () => {
-    startPreviewServer();
-    printPreviewAddress();
-    refreshPreview(realBin, "", false);
-  });
-} else if (cmd === "preview") {
+if (cmd === "preview") {
   runPreviewServer();
-} else if (cmd === "stop") {
-  passthrough(realBin, args, stopPreviewServer);
 } else if (!shouldRefresh) {
   passthrough(realBin, args);
 } else {
